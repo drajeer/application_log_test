@@ -421,7 +421,7 @@
                 <button class="btn" onclick="showAnalysis()" style="background: #5d8a9e;">📈 Analysis</button>
                 <button class="btn" onclick="showMaintenance()" style="background: #c94a4a;">🔧 Maintenance</button>
                 <button class="btn" onclick="generateTestData()" style="background: #b8856d; font-size: 0.9em; padding: 12px 20px;">Generate Test Data</button>
-                <button class="btn" onclick="showSheetData()" style="background: #7d6d9a;">🌐 Show Loaded Data</button>
+                <button class="btn" onclick="showSheetDataAndImport()" style="background: #7d6d9a;">🌐 Import Sheet Data</button>
                 <input type="file" id="importExcelInput" accept=".xlsx, .xls" style="display: none;">
             </div>
             <div style="margin-top: 30px;">
@@ -699,10 +699,9 @@
     
     <div class="modal" id="sheetDataModal">
         <div class="modal-content">
-            <h2>Loaded Google Sheet Data</h2>
+            <h2>Google Sheet Import</h2>
+            <p style="text-align: center; color: #666; margin-bottom: 20px;">Attempting to fetch all log data from Google Sheet and incorporate into the application log.</p>
             <div id="sheetStatusMessage" class="status-message status-info" style="display: none;"></div>
-            <div id="sheetDataList" style="margin-top: 20px;">
-                </div>
             <button class="close-btn" onclick="closeModal('sheetDataModal')" style="width: 100%; margin-top: 20px;">Close</button>
         </div>
     </div>
@@ -719,10 +718,20 @@
         let selectedEndDate = null;
         let currentCalendarMonth = new Date();
 
-        // --- START NEW SHEET DATA CODE (From TEST.html) ---
+        // --- START NEW SHEET DATA CODE (MODIFIED FOR FULL IMPORT) ---
         const SHEET_DATA_ID = '1CYvhRqExOH7ZY99WMBSPZmCTc_4wkJVH6wl4mB7qJIQ';
-        // Selecting columns A through E, second row (LIMIT 1 OFFSET 1)
-        const SHEET_QUERY = encodeURIComponent('SELECT A, B, C, D, E LIMIT 1 OFFSET 1');
+        
+        // Define all column headers in the order they appear in the Google Sheet (A, B, C, ...)
+        // This array maps the column index from the sheet query result to the key name expected by importLogs.
+        const SHEET_HEADERS = [
+            'Type', 'ID/Number', 'Date Received', 'Status', 'Project Title', 'Lead/Applicant', 'Organisation', 'Email', 'Description', 'Expected Days',
+            'Actual Days', 'Completion Date', 'Data Size (GB)', 'Analysis Time (hrs)', 'Data Deleted', 'Subject Sector', 'Type of Work', 'Free Beamtime',
+            'Equipment', 'Previous Experience', 'Num Samples', 'Sample Composition', 'Sample Dimensions', 'Hazardous', 'Samples Ready', 'Ready Date',
+            'Feature Size', 'Scanning Area', 'Analysis Help', 'Analysis Details', 'Additional Notes', 'System Used', 'Beamtime Type'
+        ];
+        
+        // Query to select all columns (SELECT *) and skip the first row (OFFSET 1, assuming it's a header)
+        const SHEET_QUERY = encodeURIComponent('SELECT * OFFSET 1'); 
         const SHEET_FETCH_URL = `https://docs.google.com/spreadsheets/d/${SHEET_DATA_ID}/gviz/tq?tqx=out:json&tq=${SHEET_QUERY}`;
 
         function parseGoogleSheetResponse(text) {
@@ -744,55 +753,77 @@
             statusDiv.className = 'status-message status-' + type;
             statusDiv.style.display = 'block';
         }
-
-        async function fetchAndDisplaySheetData() {
-            const dataList = document.getElementById('sheetDataList');
-            updateSheetStatus('Loading data for the second row...', 'info');
-            dataList.innerHTML = '';
+        
+        /**
+         * Fetches all data from the Google Sheet and converts it into the log structure
+         * required by the existing importLogs function.
+         */
+        async function importLogsFromSheet() {
+            updateSheetStatus('Loading and importing all rows from Google Sheet...', 'info');
 
             try {
                 const response = await fetch(SHEET_FETCH_URL);
                 const text = await response.text();
                 const json = parseGoogleSheetResponse(text);
 
-                if (!json || !json.table || !json.table.rows || json.table.rows.length === 0) {
-                    throw new Error("Invalid response or no data found in row.");
+                if (!json || !json.table || !json.table.rows) {
+                    throw new Error("Invalid response or unexpected sheet structure.");
                 }
                 
-                const row = json.table.rows[0];
-                let dataHTML = '';
-                const headers = ['A', 'B', 'C', 'D', 'E'];
+                const rawLogs = json.table.rows;
+                const processedLogs = [];
+                let importedCount = 0;
 
-                row.c.forEach((cell, index) => {
-                    // Check if the cell exists and has a value
-                    if (cell && cell.v !== null) {
-                        const header = headers[index] || 'Unknown';
-                        // Use formatted value (f) if available, otherwise raw value (v)
-                        const value = cell.f || cell.v;
+                rawLogs.forEach(row => {
+                    const newLog = {};
+                    let isRowEmpty = true;
+
+                    // Map each column in the row to the defined header key
+                    SHEET_HEADERS.forEach((header, index) => {
+                        const cell = row.c[index];
+                        let value = '';
                         
-                        // Use the existing log-detail style for clean presentation in the modal
-                        dataHTML += `<div class="log-detail"><strong>Column ${header}:</strong> <span>${value}</span></div>`;
+                        if (cell) {
+                            // Prefer formatted value (f) if available, otherwise raw value (v)
+                            // This ensures dates and numbers are correctly read as strings.
+                            value = cell.f !== undefined && cell.f !== null ? String(cell.f) : (cell.v !== undefined && cell.v !== null ? String(cell.v) : '');
+                        }
+                        
+                        newLog[header] = value;
+                        if (value.trim() !== '') {
+                            isRowEmpty = false;
+                        }
+                    });
+
+                    // Only process if the row is not completely empty
+                    if (!isRowEmpty) {
+                        processedLogs.push(newLog);
+                        importedCount++;
                     }
                 });
 
-                if (dataHTML) {
-                    dataList.innerHTML = dataHTML;
-                    updateSheetStatus('✓ Data loaded successfully. Displaying columns A-E from the second row.', 'success');
+                if (importedCount > 0) {
+                    // Use the existing importLogs function to integrate the new data
+                    importLogs(processedLogs); 
+                    updateSheetStatus(`✓ Successfully imported ${importedCount} logs from the Google Sheet!`, 'success');
                 } else {
-                    updateSheetStatus('⚠ Data was fetched but all selected cells are empty.', 'info');
+                    updateSheetStatus('⚠ Fetched data, but no valid rows were found (or all rows were empty after the header).', 'info');
                 }
 
             } catch (error) {
-                console.error("Fetch error:", error);
-                updateSheetStatus('❌ Failed to load data. Ensure the Google Sheet is "Published to the web" and the ID/Query is correct. Error: ' + error.message, 'error');
+                console.error("Fetch/Import error:", error);
+                updateSheetStatus('❌ Failed to load and import data. Ensure the Google Sheet is "Published to the web" and the ID/Query is correct. Error: ' + error.message, 'error');
             }
         }
 
-        function showSheetData() {
+        /**
+         * Opens the modal and initiates the full sheet import process.
+         */
+        function showSheetDataAndImport() {
             document.getElementById('sheetDataModal').classList.add('active');
-            fetchAndDisplaySheetData();
+            importLogsFromSheet();
         }
-        // --- END NEW SHEET DATA CODE ---
+        // --- END MODIFIED SHEET DATA CODE ---
 
         function clearHighlightOnInput(field) {
             field.style.borderColor = '#e0e0e0';
@@ -835,7 +866,7 @@
                 const analysisContent = document.getElementById('analysisContent');
                 analysisContent.innerHTML = '';
             }
-            // Clear status when closing the new modal
+            // Clear status when closing the import modal
             if (modalId === 'sheetDataModal') {
                 document.getElementById('sheetStatusMessage').style.display = 'none';
             }
