@@ -421,7 +421,6 @@
                 <button class="btn" onclick="showAnalysis()" style="background: #5d8a9e;">📈 Analysis</button>
                 <button class="btn" onclick="showMaintenance()" style="background: #c94a4a;">🔧 Maintenance</button>
                 <button class="btn" onclick="generateTestData()" style="background: #b8856d; font-size: 0.9em; padding: 12px 20px;">Generate Test Data</button>
-                <button class="btn" onclick="showSheetData()" style="background: #7d6d9a;">🌐 Show Loaded Data</button>
                 <input type="file" id="importExcelInput" accept=".xlsx, .xls" style="display: none;">
             </div>
             <div style="margin-top: 30px;">
@@ -696,16 +695,7 @@
             <button class="close-btn" onclick="closeModal('maintenanceModal')" style="width: 100%; margin-top: 20px;">Close</button>
         </div>
     </div>
-    
-    <div class="modal" id="sheetDataModal">
-        <div class="modal-content">
-            <h2>Loaded Google Sheet Data</h2>
-            <div id="sheetStatusMessage" class="status-message status-info" style="display: none;"></div>
-            <div id="sheetDataList" style="margin-top: 20px;">
-                </div>
-            <button class="close-btn" onclick="closeModal('sheetDataModal')" style="width: 100%; margin-top: 20px;">Close</button>
-        </div>
-    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
@@ -718,81 +708,6 @@
         let selectedStartDate = null;
         let selectedEndDate = null;
         let currentCalendarMonth = new Date();
-
-        // --- START NEW SHEET DATA CODE (From TEST.html) ---
-        const SHEET_DATA_ID = '1CYvhRqExOH7ZY99WMBSPZmCTc_4wkJVH6wl4mB7qJIQ';
-        // Selecting columns A through E, second row (LIMIT 1 OFFSET 1)
-        const SHEET_QUERY = encodeURIComponent('SELECT A, B, C, D, E LIMIT 1 OFFSET 1');
-        const SHEET_FETCH_URL = `https://docs.google.com/spreadsheets/d/${SHEET_DATA_ID}/gviz/tq?tqx=out:json&tq=${SHEET_QUERY}`;
-
-        function parseGoogleSheetResponse(text) {
-            try {
-                // Google wraps the JSON in a function call (JSONP). We need to strip it.
-                const start = text.indexOf('{');
-                const end = text.lastIndexOf(')');
-                const jsonString = text.substring(start, end);
-                return JSON.parse(jsonString);
-            } catch (e) {
-                console.error("Error parsing sheet response:", e);
-                return null;
-            }
-        }
-
-        function updateSheetStatus(message, type) {
-            const statusDiv = document.getElementById('sheetStatusMessage');
-            statusDiv.textContent = message;
-            statusDiv.className = 'status-message status-' + type;
-            statusDiv.style.display = 'block';
-        }
-
-        async function fetchAndDisplaySheetData() {
-            const dataList = document.getElementById('sheetDataList');
-            updateSheetStatus('Loading data for the second row...', 'info');
-            dataList.innerHTML = '';
-
-            try {
-                const response = await fetch(SHEET_FETCH_URL);
-                const text = await response.text();
-                const json = parseGoogleSheetResponse(text);
-
-                if (!json || !json.table || !json.table.rows || json.table.rows.length === 0) {
-                    throw new Error("Invalid response or no data found in row.");
-                }
-                
-                const row = json.table.rows[0];
-                let dataHTML = '';
-                const headers = ['A', 'B', 'C', 'D', 'E'];
-
-                row.c.forEach((cell, index) => {
-                    // Check if the cell exists and has a value
-                    if (cell && cell.v !== null) {
-                        const header = headers[index] || 'Unknown';
-                        // Use formatted value (f) if available, otherwise raw value (v)
-                        const value = cell.f || cell.v;
-                        
-                        // Use the existing log-detail style for clean presentation in the modal
-                        dataHTML += `<div class="log-detail"><strong>Column ${header}:</strong> <span>${value}</span></div>`;
-                    }
-                });
-
-                if (dataHTML) {
-                    dataList.innerHTML = dataHTML;
-                    updateSheetStatus('✓ Data loaded successfully. Displaying columns A-E from the second row.', 'success');
-                } else {
-                    updateSheetStatus('⚠ Data was fetched but all selected cells are empty.', 'info');
-                }
-
-            } catch (error) {
-                console.error("Fetch error:", error);
-                updateSheetStatus('❌ Failed to load data. Ensure the Google Sheet is "Published to the web" and the ID/Query is correct. Error: ' + error.message, 'error');
-            }
-        }
-
-        function showSheetData() {
-            document.getElementById('sheetDataModal').classList.add('active');
-            fetchAndDisplaySheetData();
-        }
-        // --- END NEW SHEET DATA CODE ---
 
         function clearHighlightOnInput(field) {
             field.style.borderColor = '#e0e0e0';
@@ -834,10 +749,6 @@
             if (modalId === 'analysisModal') {
                 const analysisContent = document.getElementById('analysisContent');
                 analysisContent.innerHTML = '';
-            }
-            // Clear status when closing the new modal
-            if (modalId === 'sheetDataModal') {
-                document.getElementById('sheetStatusMessage').style.display = 'none';
             }
         }
 
@@ -892,6 +803,7 @@
                     }
                     extractDataFromText(fullText);
                     successCount++;
+                    
                 } catch (error) {
                     console.error(`Error processing ${file.name}:`, error);
                     errorCount++;
@@ -919,7 +831,6 @@
                 str = str.replace(/\(whole sample, region of interest, other\)/gi, '');
                 return str.trim();
             }
-
             function extractBetween(text, startLabel, endLabel) {
                 const start = startLabel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
                 const end = endLabel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -927,7 +838,7 @@
                 const match = text.match(regex);
                 return match ? cleanText(match[1]) : '';
             }
-
+            
             document.getElementById('appNumber').value = extractBetween(text, 'APPLICATION NUMBER', 'DATE RECEIVED');
             document.getElementById('dateReceived').value = extractBetween(text, 'DATE RECEIVED', 'Full Name');
             document.getElementById('fullName').value = extractBetween(text, 'Full Name', 'Organisation');
@@ -938,7 +849,7 @@
             let desc = extractBetween(text, 'Project Description', 'Primary Subject Sector');
             desc = desc.replace(/in\s+ammatory/g, 'inflammatory').replace(/e\s+cacy/g, 'efficacy').replace(/\s+rst/g, ' first');
             document.getElementById('projectDescription').value = desc;
-
+            
             document.getElementById('subjectSector').value = extractBetween(text, 'Primary Subject Sector', 'Answer if');
             document.getElementById('typeOfWork').value = extractBetween(text, 'Type of Work', 'Applying for the NXCT Free Beamtime Access Scheme');
             document.getElementById('freeBeamtime').value = extractBetween(text, 'Applying for the NXCT Free Beamtime Access Scheme', 'If an SME');
@@ -959,19 +870,19 @@
             if (scanArea) {
                 document.getElementById('scanningArea').value = cleanText(scanArea[1]);
             }
-
+            
             let samplesReady = text.match(/Sample\s*\(\s*s\s*\)\s*ready\s*\*?\s*([^\n]+?)\s*Date when samples will be ready/i);
             if (samplesReady) {
                 document.getElementById('samplesReady').value = cleanText(samplesReady[1]);
             }
-
+            
             document.getElementById('readyDate').value = extractBetween(text, 'Date when samples will be ready', 'Size of feature');
             
             let featureSize = text.match(/Size of feature\s*\(\s*s\s*\)\s*\*?\s*([\s\S]+?)\s*In-situ or rig-only experiment/i);
             if (featureSize) {
                 document.getElementById('featureSize').value = cleanText(featureSize[1]);
             }
-
+            
             document.getElementById('analysisHelp').value = extractBetween(text, 'Analysis help needed', 'If yes or not sure, details of analysis help needed');
             document.getElementById('analysisDetails').value = extractBetween(text, 'If yes or not sure, details of analysis help needed', 'Details of any previous NXCT work');
         }
@@ -1017,21 +928,17 @@
                 dataDeleted: 'No',
                 statusLog: [{ status: 'Acknowledged', date: new Date().toLocaleString() }]
             };
-            
-            experimentLogs.unshift({
-                type: 'NXCT',
-                timestamp: new Date().toLocaleString(),
-                data
-            });
-
+            experimentLogs.unshift({ type: 'NXCT', timestamp: new Date().toLocaleString(), data });
             renderLogs();
+            
             document.getElementById('pdfInput').value = '';
             document.getElementById('extractedDataForm').style.display = 'none';
             document.getElementById('cancelUploadBtn').style.display = 'block';
+            
             closeModal('nxctModal');
             // // alert('NXCT Application saved successfully!');
         }
-        
+
         function saveNXCTApplicationSilent() {
             const data = {
                 appNumber: document.getElementById('appNumber').value,
@@ -1066,12 +973,7 @@
                 dataDeleted: 'No',
                 statusLog: [{ status: 'Acknowledged', date: new Date().toLocaleString() }]
             };
-            
-            experimentLogs.unshift({
-                type: 'NXCT',
-                timestamp: new Date().toLocaleString(),
-                data
-            });
+            experimentLogs.unshift({ type: 'NXCT', timestamp: new Date().toLocaleString(), data });
             renderLogs();
         }
 
@@ -1090,25 +992,27 @@
                 // alert('Please enter a title');
                 return;
             }
+            
             if (!lead) {
                 // alert('Please enter experiment lead name');
                 return;
             }
+            
             if (!email) {
                 // alert('Please enter email address');
                 return;
             }
-
+            
             const internalNumber = getNextInternalNumber();
             const dateReceived = new Date().toLocaleDateString('en-GB');
-
-            experimentLogs.unshift({
-                type: 'Internal',
-                timestamp: new Date().toLocaleString(),
-                data: {
+            
+            experimentLogs.unshift({ 
+                type: 'Internal', 
+                timestamp: new Date().toLocaleString(), 
+                data: { 
                     internalNumber,
                     dateReceived,
-                    title,
+                    title, 
                     lead,
                     organisation,
                     email,
@@ -1116,273 +1020,787 @@
                     expectedDays,
                     beamtime,
                     notes,
-                    status: 'Acknowledged',
+                    completed: false,
                     completionDate: '',
-                    actualDays: '',
-                    dataSize: '',
-                    analysisTime: '',
-                    dataDeleted: 'No',
-                    statusLog: [{ status: 'Acknowledged', date: new Date().toLocaleString() }]
-                }
+                    daysUsed: ''
+                } 
             });
-
             renderLogs();
+            closeModal('internalModal');
+            
             document.getElementById('internalTitle').value = '';
             document.getElementById('internalLead').value = '';
+            document.getElementById('internalOrganisation').value = 'University College London';
             document.getElementById('internalEmail').value = '';
             document.getElementById('internalSystem').value = '';
             document.getElementById('internalDays').value = '';
+            beamtimeToggle.classList.remove('active');
             document.getElementById('internalNotes').value = '';
             
-            closeModal('internalModal');
-            // // alert(`Internal Application ${internalNumber} saved successfully!`);
-        }
-
-        function toggleBeamtime() {
-            document.getElementById('beamtimeToggle').classList.toggle('active');
-        }
-
-        function renderLogs() {
-            const logsList = document.getElementById('logsList');
-            logsList.innerHTML = experimentLogs.map((log, index) => {
-                const isDeleted = log.data.dataDeleted === 'Yes';
-                const typeText = log.type === 'NXCT' ? `App: ${log.data.appNumber}` : `Internal: ${log.data.internalNumber}`;
-                const titleText = log.type === 'NXCT' ? log.data.projectTitle : log.data.title;
-                const statusClass = log.data.status.toLowerCase().replace(/[^a-z0-9]/g, '-');
-                const compactClass = compactView ? 'compact' : '';
-                const dataIndicatorClass = log.data.dataDeleted === 'Yes' ? 'deleted' : (log.data.dataSize ? 'stored' : 'warning');
-                const dataIndicatorText = log.data.dataDeleted === 'Yes' ? 'Data Deleted' : (log.data.dataSize ? `Data Stored (${log.data.dataSize})` : 'Data Pending');
-
-                return `
-                    <div class="log-entry status-${statusClass} ${compactClass} ${isDeleted ? 'deleted' : ''}" onclick="viewLogDetails(${index})">
-                        ${isDeleted ? '<span class="deleted-badge">DELETED</span>' : ''}
-                        <span class="status-badge ${statusClass}">${log.data.status}</span>
-                        <span class="data-indicator ${dataIndicatorClass}">${dataIndicatorText}</span>
-                        <h3>
-                            ${typeText} - ${titleText}
-                        </h3>
-                        <div class="log-detail">
-                            <strong>Date Received:</strong> <span>${log.data.dateReceived}</span>
-                        </div>
-                        <div class="log-detail">
-                            <strong>Lead/Applicant:</strong> <span>${log.type === 'NXCT' ? log.data.fullName : log.data.lead} (${log.data.organisation})</span>
-                        </div>
-                        <p style="margin-top: 10px; color: #666;">${log.type === 'NXCT' ? log.data.projectDescription.substring(0, 100) + '...' : log.data.notes.substring(0, 100) + '...'}</p>
-                    </div>
-                `;
-            }).join('');
+            // // alert('Internal application saved successfully!');
         }
 
         function toggleView() {
             compactView = !compactView;
-            document.getElementById('viewToggle').classList.toggle('active');
-            renderLogs();
+            const toggle = document.getElementById('viewToggle');
             if (compactView) {
-                document.querySelector('.view-toggle .toggle-label').textContent = 'Compact View';
+                toggle.classList.add('active');
             } else {
-                document.querySelector('.view-toggle .toggle-label').textContent = 'Detailed View';
+                toggle.classList.remove('active');
             }
+            renderLogs();
         }
 
-        function viewLogDetails(index) {
+        function toggleBeamtime() {
+            const toggle = document.getElementById('beamtimeToggle');
+            toggle.classList.toggle('active');
+        }
+
+        function getDataIndicator(data) {
+            if (data.status !== 'Results Ready' && data.status !== 'Data Transferred') {
+                return '';
+            }
+
+            const dataDeleted = data.dataDeleted === 'Yes';
+            const completionDate = data.completionDate;
+
+            if (dataDeleted) {
+                return '<span class="data-indicator deleted">🗑️ Data Deleted</span>';
+            }
+
+            if (data.status === 'Data Transferred') {
+                if (completionDate) {
+                    const completed = new Date(completionDate);
+                    const today = new Date();
+                    const daysDiff = Math.floor((today - completed) / (1000 * 60 * 60 * 24));
+                    const weeksPassed = Math.floor(daysDiff / 7);
+
+                    if (weeksPassed >= 8) {
+                        return `<span class="data-indicator warning">⚠️ Data stored - ${weeksPassed} weeks (Delete due!)</span>`;
+                    }
+                }
+                return '<span class="data-indicator stored">💾 Data Stored</span>';
+            }
+
+            return '<span class="data-indicator stored">💾 Data Stored</span>';
+        }
+
+        function renderLogs() {
+            const logsList = document.getElementById('logsList');
+            if (experimentLogs.length === 0) {
+                logsList.innerHTML = '<p style="text-align: center; color: #999;">No entries yet</p>';
+                return;
+            }
+            logsList.innerHTML = experimentLogs.map((log, index) => {
+                if (log.type === 'NXCT') {
+                    const d = log.data;
+                    const statusClass = getStatusClass(d.status || 'Acknowledged');
+                    const statusBadgeClass = statusClass;
+                    const dataIndicator = getDataIndicator(d);
+                    const deletedClass = log.deleted ? 'deleted' : '';
+                    const deletedBadge = log.deleted ? '<span class="deleted-badge">DELETED</span>' : '';
+                    
+                    if (compactView) {
+                        return `<div class="log-entry compact status-${statusClass} ${deletedClass}" onclick="viewDetails(${index})">
+                            ${deletedBadge}<span class="status-badge ${statusBadgeClass}">${d.status || 'Acknowledged'}</span>
+                            <h3>${d.appNumber || 'N/A'} - ${d.projectTitle || 'No Title'} ${dataIndicator}</h3>
+                        </div>`;
+                    } else {
+                        return `<div class="log-entry status-${statusClass} ${deletedClass}" onclick="viewDetails(${index})">
+                            ${deletedBadge}<span class="status-badge ${statusBadgeClass}">${d.status || 'Acknowledged'}</span>
+                            <h3>NXCT - ${d.appNumber || 'N/A'} ${dataIndicator}</h3>
+                            <div class="log-detail"><strong>Date:</strong><span>${d.dateReceived}</span></div>
+                            <div class="log-detail"><strong>Applicant:</strong><span>${d.fullName}</span></div>
+                            <div class="log-detail"><strong>Organisation:</strong><span>${d.organisation}</span></div>
+                            <div class="log-detail"><strong>Project:</strong><span>${d.projectTitle}</span></div>
+                            <div class="log-detail"><strong>Equipment:</strong><span>${d.equipment}</span></div>
+                            <div class="log-detail"><strong>Days Needed:</strong><span>${d.daysNeeded}</span></div>
+                            <div class="log-detail"><strong>Logged:</strong><span>${log.timestamp}</span></div>
+                            <p style="margin-top: 10px; color: #5d7a9e; font-size: 0.9em;">Click to view full details</p>
+                        </div>`;
+                    }
+                } else {
+                    const deletedClass = log.deleted ? 'deleted' : '';
+                    const deletedBadge = log.deleted ? '<span class="deleted-badge">DELETED</span>' : '';
+                    
+                    if (compactView) {
+                        return `<div class="log-entry compact ${deletedClass}" onclick="viewDetails(${index})">
+                            ${deletedBadge}<h3>Internal-${log.data.internalNumber} - ${log.data.title}</h3>
+                        </div>`;
+                    } else {
+                        return `<div class="log-entry ${deletedClass}" onclick="viewDetails(${index})">
+                            ${deletedBadge}<h3>Internal - ${log.data.internalNumber}</h3>
+                            <div class="log-detail"><strong>Title:</strong><span>${log.data.title}</span></div>
+                            <div class="log-detail"><strong>Lead:</strong><span>${log.data.lead || 'N/A'}</span></div>
+                            <div class="log-detail"><strong>System:</strong><span>${log.data.system || 'N/A'}</span></div>
+                            <div class="log-detail"><strong>Expected Days:</strong><span>${log.data.expectedDays || 'N/A'}</span></div>
+                            <div class="log-detail"><strong>Logged:</strong><span>${log.timestamp}</span></div>
+                            <p style="margin-top: 10px; color: #667eea; font-size: 0.9em;">Click to view full details</p>
+                        </div>`;
+                    }
+                }
+            }).join('');
+        }
+
+        function viewDetails(index) {
             const log = experimentLogs[index];
             const modal = document.getElementById('viewDetailsModal');
-            const titleElement = document.getElementById('viewDetailsTitle');
-            const contentElement = document.getElementById('viewDetailsContent');
-            
-            titleElement.textContent = `${log.type} Application Details`;
-            
-            let contentHTML = '';
-            
-            // Status update section
-            contentHTML += `
-                <div style="margin-bottom: 20px; padding: 15px; border-radius: 8px; background: #f0f3f6;">
-                    <h3 style="margin-bottom: 10px; color: #2c4a6e;">Status History</h3>
-                    <select id="statusSelect" style="width: 100%; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
-                        <option value="Acknowledged" ${log.data.status === 'Acknowledged' ? 'selected' : ''}>Acknowledged</option>
-                        <option value="Samples Received" ${log.data.status === 'Samples Received' ? 'selected' : ''}>Samples Received</option>
-                        <option value="Scanning" ${log.data.status === 'Scanning' ? 'selected' : ''}>Scanning</option>
-                        <option value="Scan Complete" ${log.data.status === 'Scan Complete' ? 'selected' : ''}>Scan Complete</option>
-                        <option value="Results Ready" ${log.data.status === 'Results Ready' ? 'selected' : ''}>Results Ready</option>
-                        <option value="Data Transferred" ${log.data.status === 'Data Transferred' ? 'selected' : ''}>Data Transferred</option>
-                    </select>
-                    <button class="btn" style="padding: 8px 15px; font-size: 0.9em; margin-right: 10px;" onclick="updateStatus(${index})">Update Status</button>
-                    <div style="margin-top: 15px; max-height: 150px; overflow-y: auto; background: white; padding: 10px; border-radius: 8px;">
-                        ${log.data.statusLog.map(s => `<div style="font-size: 0.9em; border-bottom: 1px dashed #eee; padding: 5px 0;"><strong>${s.status}</strong> on ${s.date}</div>`).reverse().join('')}
-                    </div>
-                </div>
-            `;
-            
-            // Detailed data display
-            contentHTML += '<div class="two-column" style="margin-top: 20px;">';
+            const title = document.getElementById('viewDetailsTitle');
+            const content = document.getElementById('viewDetailsContent');
 
-            // General Details Column (same for both types)
             if (log.type === 'NXCT') {
-                contentHTML += `
-                    <div style="grid-column: 1 / -1;"><h3 class="section-title" style="margin-top: 0;">Application Details</h3></div>
-                    <div class="log-detail"><strong>App Number:</strong> <span>${log.data.appNumber}</span></div>
-                    <div class="log-detail"><strong>Date Received:</strong> <span>${log.data.dateReceived}</span></div>
-                    <div class="log-detail"><strong>Applicant Name:</strong> <span>${log.data.fullName}</span></div>
-                    <div class="log-detail"><strong>Organisation:</strong> <span>${log.data.organisation}</span></div>
-                    <div class="log-detail"><strong>Email:</strong> <span>${log.data.email}</span></div>
-                    <div class="log-detail" style="grid-column: 1 / -1;"><strong>Project Title:</strong> <span>${log.data.projectTitle}</span></div>
-                    <div class="log-detail" style="grid-column: 1 / -1;"><strong>Description:</strong> <span>${log.data.projectDescription}</span></div>
-                    <div style="grid-column: 1 / -1;"><h3 class="section-title">Logistics & Results</h3></div>
-                    <div class="log-detail"><strong>Days Needed:</strong> <span>${log.data.daysNeeded}</span></div>
-                    <div class="log-detail"><strong>Actual Days:</strong> <span><input type="text" id="actualDays" value="${log.data.actualDays}" oninput="clearHighlightOnInput(this)"></span></div>
-                    <div class="log-detail"><strong>Completion Date:</strong> <span><input type="text" id="completionDate" value="${log.data.completionDate}" oninput="clearHighlightOnInput(this)"></span></div>
-                    <div class="log-detail"><strong>Data Size (GB):</strong> <span><input type="text" id="dataSize" value="${log.data.dataSize}" oninput="clearHighlightOnInput(this)"></span></div>
-                    <div class="log-detail"><strong>Analysis Time (hrs):</strong> <span><input type="text" id="analysisTime" value="${log.data.analysisTime}" oninput="clearHighlightOnInput(this)"></span></div>
-                    <div class="log-detail"><strong>Data Deleted:</strong> <span>
-                        <select id="dataDeleted" onchange="clearHighlightOnInput(this)">
-                            <option value="No" ${log.data.dataDeleted === 'No' ? 'selected' : ''}>No</option>
-                            <option value="Yes" ${log.data.dataDeleted === 'Yes' ? 'selected' : ''}>Yes</option>
+                const d = log.data;
+                const deleteButtonText = log.deleted ? 'Restore Application' : 'Delete Application';
+                const deleteButtonStyle = log.deleted ? 'background: #4a7c59;' : 'background: #c94a4a;';
+                
+                title.textContent = `NXCT Application - ${d.appNumber}`;
+                content.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <button class="btn" onclick="deleteApplication(${index})" style="padding: 10px 20px; font-size: 0.95em; ${deleteButtonStyle}">${deleteButtonText}</button>
+                        <button class="btn" onclick="saveTracking(${index})" style="padding: 10px 20px; font-size: 0.95em;">Save Tracking Info</button>
+                    </div>
+                    
+                    <div class="section-title">Project Status & Tracking</div>
+                    <div class="input-group">
+                        <label>Status:</label>
+                        <input type="range" id="editStatusSlider" min="0" max="5" value="${getStatusValue(d.status)}" 
+                               style="width: 100%;" oninput="updateStatusLabel(this.value)" onchange="validateStatusChange(this)">
+                        <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 0.8em;">
+                            <span style="color: #6d7a8a;">Acknowledged</span>
+                            <span style="color: #5d8a9e;">Samples Received</span>
+                            <span style="color: #c9a86a;">Scanning</span>
+                            <span style="color: #b8856d;">Scan Complete</span>
+                            <span style="color: #5d8a6d;">Results Ready</span>
+                            <span style="color: #7d6d9a;">Data Transferred</span>
+                        </div>
+                        <div id="currentStatusLabel" style="text-align: center; margin-top: 10px; font-weight: 600; font-size: 1.1em;"></div>
+                    </div>
+                    <div class="two-column">
+                        <div class="input-group">
+                            <label>Data Transfer Date:</label>
+                            <input type="date" id="editCompletionDate" value="${d.completionDate || ''}">
+                        </div>
+                        <div class="input-group">
+                            <label>Days Used:</label>
+                            <input type="number" id="editActualDays" value="${d.actualDays || ''}" placeholder="Required at Scan Complete" oninput="clearHighlightOnInput(this)">
+                        </div>
+                    </div>
+                    
+                    <div class="input-group" id="equipmentUsedGroup" style="${getStatusValue(d.status) >= 3 ? '' : 'display: none;'}">
+                        <label style="margin-bottom: 10px;">Equipment Used (select at least one):</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: normal;">
+                                <input type="checkbox" id="equipMicroscope" ${d.equipmentUsed && d.equipmentUsed.includes('Microscope') ? 'checked' : ''} 
+                                       style="width: 18px; height: 18px; cursor: pointer;">
+                                <span>Microscope</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: normal;">
+                                <input type="checkbox" id="equipLargeFOV" ${d.equipmentUsed && d.equipmentUsed.includes('Large Field of View') ? 'checked' : ''} 
+                                       style="width: 18px; height: 18px; cursor: pointer;">
+                                <span>Large Field of View</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: normal;">
+                                <input type="checkbox" id="equipMediumFOV" ${d.equipmentUsed && d.equipmentUsed.includes('Medium Field of View') ? 'checked' : ''} 
+                                       style="width: 18px; height: 18px; cursor: pointer;">
+                                <span>Medium Field of View</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: normal;">
+                                <input type="checkbox" id="equipOther" ${d.equipmentUsed && d.equipmentUsed.includes('Other') ? 'checked' : ''} 
+                                       style="width: 18px; height: 18px; cursor: pointer;">
+                                <span>Other</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="two-column">
+                        <div class="input-group">
+                            <label>Data Size (GB):</label>
+                            <input type="number" id="editDataSize" value="${d.dataSize || ''}" placeholder="Required at Results Ready" step="0.1" oninput="clearHighlightOnInput(this)">
+                        </div>
+                        <div class="input-group">
+                            <label>Analysis Time (hours):</label>
+                            <input type="number" id="editAnalysisTime" value="${d.analysisTime || ''}" placeholder="Required at Results Ready" step="0.5" oninput="clearHighlightOnInput(this)">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Data Deleted:</label>
+                        <select id="editDataDeleted">
+                            <option value="No" ${d.dataDeleted === 'No' ? 'selected' : ''}>No</option>
+                            <option value="Yes" ${d.dataDeleted === 'Yes' ? 'selected' : ''}>Yes</option>
                         </select>
-                    </span></div>
-                    <div class="log-detail" style="grid-column: 1 / -1;"><strong>Full Notes:</strong> <span>${log.data.additionalNotes || 'N/A'}</span></div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Status Change Log:</label>
+                        <div style="background: #f8f9fa; border: 2px solid #e0e0e0; border-radius: 8px; padding: 10px; max-height: 150px; overflow-y: auto;">
+                            ${d.statusLog && d.statusLog.length > 0 ? 
+                                d.statusLog.map(entry => `<div style="padding: 5px 0; border-bottom: 1px solid #dee2e6; font-size: 0.9em;">
+                                    <strong style="color: ${getStatusColor(entry.status)};">${entry.status}</strong> 
+                                    <span style="color: #6c757d;">- ${entry.date}</span>
+                                </div>`).join('') 
+                                : '<div style="color: #999;">No status changes yet</div>'}
+                        </div>
+                    </div>
+
+                    <div class="section-title">Application Details</div>
+                    <div class="log-detail"><strong>Application Number:</strong><span>${d.appNumber || 'N/A'}</span></div>
+                    <div class="log-detail"><strong>Date Received:</strong><span>${d.dateReceived || 'N/A'}</span></div>
+                    
+                    <div class="section-title">Applicant Details</div>
+                    <div class="log-detail"><strong>Full Name:</strong><span>${d.fullName || 'N/A'}</span></div>
+                    <div class="log-detail"><strong>Organisation:</strong><span>${d.organisation || 'N/A'}</span></div>
+                    <div class="log-detail"><strong>Email:</strong><span>${d.email || 'N/A'}</span></div>
+                    
+                    <div class="section-title">Project Details</div>
+                    <div class="log-detail"><strong>Project Title:</strong><span>${d.projectTitle || 'N/A'}</span></div>
+                    <div class="log-detail" style="grid-template-columns: 1fr;"><strong>Project Description:</strong><span style="white-space: pre-wrap;">${d.projectDescription || 'N/A'}</span></div>
+                    <div class="log-detail"><strong>Primary Subject Sector:</strong><span>${d.subjectSector || 'N/A'}</span></div>
+                    <div class="log-detail"><strong>Type of Work:</strong><span>${d.typeOfWork || 'N/A'}</span></div>
+                    <div class="log-detail"><strong>Free Beamtime Access:</strong><span>${d.freeBeamtime || 'N/A'}</span></div>
+                    <div class="log-detail"><strong>Expected Days Needed:</strong><span>${d.daysNeeded || 'N/A'}</span></div>
+                    <div class="log-detail"><strong>Equipment Requested:</strong><span>${d.equipment || 'N/A'}</span></div>
+                    <div class="log-detail"><strong>Previous XCT Experience:</strong><span>${d.previousExperience || 'N/A'}</span></div>
+                    ${d.equipmentUsed ? `<div class="log-detail"><strong>Equipment Used:</strong><span>${d.equipmentUsed.join(', ')}</span></div>` : ''}
+                    
+                    <div class="section-title">Sample Details</div>
+                    <div class="log-detail"><strong>Number of Samples:</strong><span>${d.numSamples || 'N/A'}</span></div>
+                    <div class="log-detail"><strong>Sample Composition:</strong><span>${d.sampleComposition || 'N/A'}</span></div>
+                    <div class="log-detail"><strong>Sample Dimensions:</strong><span>${d.sampleDimensions || 'N/A'}</span></div>
+                    <div class="log-detail"><strong>Hazardous Samples:</strong><span>${d.hazardous || 'N/A'}</span></div>
+                    <div class="log-detail"><strong>Samples Ready:</strong><span>${d.samplesReady || 'N/A'}</span></div>
+                    <div class="log-detail"><strong>Ready Date:</strong><span>${d.readyDate || 'N/A'}</span></div>
+                    <div class="log-detail" style="grid-template-columns: 1fr;"><strong>Feature Size:</strong><span style="white-space: pre-wrap;">${d.featureSize || 'N/A'}</span></div>
+                    <div class="log-detail"><strong>Scanning Area:</strong><span>${d.scanningArea || 'N/A'}</span></div>
+                    <div class="log-detail"><strong>Analysis Help Needed:</strong><span>${d.analysisHelp || 'N/A'}</span></div>
+                    <div class="log-detail" style="grid-template-columns: 1fr;"><strong>Analysis Details:</strong><span style="white-space: pre-wrap;">${d.analysisDetails || 'N/A'}</span></div>
+                    ${d.additionalNotes ? `<div class="log-detail" style="grid-template-columns: 1fr;"><strong>Additional Notes:</strong><span style="white-space: pre-wrap;">${d.additionalNotes}</span></div>` : ''}
+                    
+                    <div class="log-detail" style="margin-top: 20px; border-top: 2px solid #e0e0e0; padding-top: 15px;"><strong>Logged:</strong><span>${log.timestamp}</span></div>
                 `;
-            } else { // Internal Log
-                contentHTML += `
-                    <div style="grid-column: 1 / -1;"><h3 class="section-title" style="margin-top: 0;">Internal Experiment Details</h3></div>
-                    <div class="log-detail"><strong>Internal Number:</strong> <span>${log.data.internalNumber}</span></div>
-                    <div class="log-detail"><strong>Date Added:</strong> <span>${log.data.dateReceived}</span></div>
-                    <div class="log-detail"><strong>Experiment Lead:</strong> <span>${log.data.lead}</span></div>
-                    <div class="log-detail"><strong>System Used:</strong> <span>${log.data.system}</span></div>
-                    <div class="log-detail"><strong>Beamtime:</strong> <span>${log.data.beamtime}</span></div>
-                    <div class="log-detail"><strong>Expected Days:</strong> <span>${log.data.expectedDays}</span></div>
-                    <div class="log-detail" style="grid-column: 1 / -1;"><strong>Title:</strong> <span>${log.data.title}</span></div>
-                    <div class="log-detail" style="grid-column: 1 / -1;"><strong>Description:</strong> <span>${log.data.notes}</span></div>
-                    <div style="grid-column: 1 / -1;"><h3 class="section-title">Logistics & Results</h3></div>
-                    <div class="log-detail"><strong>Actual Days:</strong> <span><input type="text" id="actualDays" value="${log.data.actualDays}" oninput="clearHighlightOnInput(this)"></span></div>
-                    <div class="log-detail"><strong>Completion Date:</strong> <span><input type="text" id="completionDate" value="${log.data.completionDate}" oninput="clearHighlightOnInput(this)"></span></div>
-                    <div class="log-detail"><strong>Data Size (GB):</strong> <span><input type="text" id="dataSize" value="${log.data.dataSize}" oninput="clearHighlightOnInput(this)"></span></div>
-                    <div class="log-detail"><strong>Analysis Time (hrs):</strong> <span><input type="text" id="analysisTime" value="${log.data.analysisTime}" oninput="clearHighlightOnInput(this)"></span></div>
-                    <div class="log-detail"><strong>Data Deleted:</strong> <span>
-                        <select id="dataDeleted" onchange="clearHighlightOnInput(this)">
-                            <option value="No" ${log.data.dataDeleted === 'No' ? 'selected' : ''}>No</option>
-                            <option value="Yes" ${log.data.dataDeleted === 'Yes' ? 'selected' : ''}>Yes</option>
-                        </select>
-                    </span></div>
+            } else {
+                const deleteButtonText = log.deleted ? 'Restore Application' : 'Delete Application';
+                const deleteButtonStyle = log.deleted ? 'background: #4a7c59;' : 'background: #c94a4a;';
+                
+                title.textContent = `Internal Application - ${log.data.internalNumber || 'N/A'}`;
+                content.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <button class="btn" onclick="deleteApplication(${index})" style="padding: 10px 20px; font-size: 0.95em; ${deleteButtonStyle}">${deleteButtonText}</button>
+                        <button class="btn" onclick="saveInternalTracking(${index})" style="padding: 10px 20px; font-size: 0.95em;">Save Tracking Info</button>
+                    </div>
+                    
+                    <div class="section-title">Tracking Information</div>
+                    <div class="input-group">
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                            <input type="checkbox" id="internalCompleted" ${log.data.completed ? 'checked' : ''} 
+                                   style="width: 20px; height: 20px; cursor: pointer;">
+                            <span style="font-weight: 600;">Completed</span>
+                        </label>
+                    </div>
+                    <div class="input-group" id="completionDateGroup" style="${log.data.completed ? '' : 'display: none;'}">
+                        <label>Completion Date:</label>
+                        <input type="date" id="internalCompletionDate" value="${log.data.completionDate || new Date().toISOString().split('T')[0]}" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Days Used:</label>
+                        <input type="number" id="internalDaysUsed" value="${log.data.daysUsed || ''}" 
+                               placeholder="Enter days used" oninput="clearHighlightOnInput(this)">
+                    </div>
+                    
+                    <div class="section-title">Application Details</div>
+                    <div class="log-detail"><strong>Internal Number:</strong><span>${log.data.internalNumber || 'N/A'}</span></div>
+                    <div class="log-detail"><strong>Date Received:</strong><span>${log.data.dateReceived || 'N/A'}</span></div>
+                    <div class="log-detail"><strong>Experiment Title:</strong><span>${log.data.title}</span></div>
+                    <div class="log-detail"><strong>Experiment Lead:</strong><span>${log.data.lead || 'N/A'}</span></div>
+                    <div class="log-detail"><strong>Organisation:</strong><span>${log.data.organisation || 'N/A'}</span></div>
+                    <div class="log-detail"><strong>Email Address:</strong><span>${log.data.email || 'N/A'}</span></div>
+                    <div class="log-detail"><strong>System Used:</strong><span>${log.data.system || 'N/A'}</span></div>
+                    <div class="log-detail"><strong>Expected Days:</strong><span>${log.data.expectedDays || 'N/A'}</span></div>
+                    <div class="log-detail"><strong>Free Beamtime Access:</strong><span>${log.data.beamtime || 'N/A'}</span></div>
+                    ${log.data.notes ? `<div class="log-detail" style="grid-template-columns: 1fr;"><strong>Brief Experiment Description:</strong><span style="white-space: pre-wrap;">${log.data.notes}</span></div>` : ''}
+                    <div class="log-detail" style="margin-top: 20px; border-top: 2px solid #e0e0e0; padding-top: 15px;"><strong>Logged:</strong><span>${log.timestamp}</span></div>
                 `;
+                
+                setTimeout(() => {
+                    const checkbox = document.getElementById('internalCompleted');
+                    const dateGroup = document.getElementById('completionDateGroup');
+                    const dateInput = document.getElementById('internalCompletionDate');
+                    const daysUsedInput = document.getElementById('internalDaysUsed');
+                    
+                    if (checkbox) {
+                        checkbox.addEventListener('change', function() {
+                            if (this.checked) {
+                                dateGroup.style.display = 'block';
+                                if (!dateInput.value) {
+                                    dateInput.value = new Date().toISOString().split('T')[0];
+                                }
+                                if (daysUsedInput && !daysUsedInput.value.trim()) {
+                                    daysUsedInput.style.borderColor = '#fd7e14';
+                                    daysUsedInput.style.borderWidth = '3px';
+                                    daysUsedInput.style.boxShadow = '0 0 10px rgba(253, 126, 20, 0.4)';
+                                }
+                            } else {
+                                dateGroup.style.display = 'none';
+                                if (daysUsedInput) {
+                                    daysUsedInput.style.borderColor = '#e0e0e0';
+                                    daysUsedInput.style.borderWidth = '2px';
+                                    daysUsedInput.style.boxShadow = 'none';
+                                }
+                            }
+                        });
+                    }
+                }, 100);
             }
 
-            contentHTML += '</div>';
-            
-            contentHTML += `
-                <div class="button-group" style="margin-top: 30px;">
-                    <button class="btn" style="background: #4a7c59;" onclick="saveLogDetails(${index})">Save Changes</button>
-                    <button class="btn" style="background: #c94a4a;" onclick="deleteLog(${index})">Delete Log</button>
-                    <button class="close-btn" onclick="closeModal('viewDetailsModal')">Close</button>
-                </div>
-            `;
-            
-            contentElement.innerHTML = contentHTML;
             modal.classList.add('active');
-        }
-
-        function updateStatus(index) {
-            const newStatus = document.getElementById('statusSelect').value;
-            const log = experimentLogs[index];
+            modal.setAttribute('data-current-index', index);
             
-            if (log.data.status !== newStatus) {
-                log.data.status = newStatus;
-                log.data.statusLog.push({ status: newStatus, date: new Date().toLocaleString() });
-                // Re-render the details modal and main logs list
-                viewLogDetails(index); 
-                renderLogs();
+            if (log.type === 'NXCT') {
+                updateStatusLabel(getStatusValue(log.data.status));
+                const slider = document.getElementById('editStatusSlider');
+                if (slider) {
+                    slider.setAttribute('data-last-valid', slider.value);
+                }
             }
         }
 
-        function saveLogDetails(index) {
-            const log = experimentLogs[index];
+        function validateStatusChange(slider) {
+            const newValue = parseInt(slider.value);
+            const lastValid = parseInt(slider.getAttribute('data-last-valid') || '0');
+            const newStatus = getStatusFromValue(newValue);
             
-            // Get data from inputs, highlighting empty ones that are being saved as empty
-            const actualDaysField = document.getElementById('actualDays');
-            const completionDateField = document.getElementById('completionDate');
-            const dataSizeField = document.getElementById('dataSize');
-            const analysisTimeField = document.getElementById('analysisTime');
-            const dataDeletedField = document.getElementById('dataDeleted');
+            const daysField = document.getElementById('editActualDays');
+            const dataSizeField = document.getElementById('editDataSize');
+            const analysisTimeField = document.getElementById('editAnalysisTime');
+            const equipmentGroup = document.getElementById('equipmentUsedGroup');
             
-            log.data.actualDays = actualDaysField.value;
-            log.data.completionDate = completionDateField.value;
-            log.data.dataSize = dataSizeField.value;
-            log.data.analysisTime = analysisTimeField.value;
-            log.data.dataDeleted = dataDeletedField.value;
-
-            // Highlight if they are empty
-            if (log.data.actualDays.trim() === '') actualDaysField.style.borderColor = '#c9a86a';
-            if (log.data.completionDate.trim() === '') completionDateField.style.borderColor = '#c9a86a';
-            if (log.data.dataSize.trim() === '') dataSizeField.style.borderColor = '#c9a86a';
-            if (log.data.analysisTime.trim() === '') analysisTimeField.style.borderColor = '#c9a86a';
-
-            renderLogs();
-            // alert('Log details updated successfully!');
+            if (newValue >= 3 && equipmentGroup) {
+                equipmentGroup.style.display = 'block';
+            } else if (equipmentGroup) {
+                equipmentGroup.style.display = 'none';
+            }
+            
+            if (newValue === 3) {
+                if (daysField && !daysField.value.trim()) {
+                    daysField.style.borderColor = '#fd7e14';
+                    daysField.style.borderWidth = '4px';
+                    daysField.style.boxShadow = '0 0 15px rgba(253, 126, 20, 0.6)';
+                }
+                
+                const microscope = document.getElementById('equipMicroscope')?.checked;
+                const largeFOV = document.getElementById('equipLargeFOV')?.checked;
+                const mediumFOV = document.getElementById('equipMediumFOV')?.checked;
+                const other = document.getElementById('equipOther')?.checked;
+                
+                if (!microscope && !largeFOV && !mediumFOV && !other && equipmentGroup) {
+                    equipmentGroup.style.borderColor = '#fd7e14';
+                    equipmentGroup.style.borderWidth = '3px';
+                    equipmentGroup.style.borderStyle = 'solid';
+                    equipmentGroup.style.borderRadius = '8px';
+                    equipmentGroup.style.padding = '15px';
+                    equipmentGroup.style.boxShadow = '0 0 15px rgba(253, 126, 20, 0.6)';
+                }
+            }
+            
+            if (newValue > 3) {
+                if (!daysField || !daysField.value.trim()) {
+                    // alert('⚠️ Days Used is required before moving past Scan Complete!');
+                    slider.value = Math.min(lastValid, 3);
+                    updateStatusLabel(slider.value);
+                    if (daysField) {
+                        daysField.style.borderColor = '#dc3545';
+                        daysField.style.borderWidth = '4px';
+                        daysField.style.boxShadow = '0 0 15px rgba(220, 53, 69, 0.6)';
+                        daysField.focus();
+                    }
+                    return;
+                }
+                
+                const microscope = document.getElementById('equipMicroscope')?.checked;
+                const largeFOV = document.getElementById('equipLargeFOV')?.checked;
+                const mediumFOV = document.getElementById('equipMediumFOV')?.checked;
+                const other = document.getElementById('equipOther')?.checked;
+                
+                if (!microscope && !largeFOV && !mediumFOV && !other) {
+                    // alert('⚠️ Please select at least one equipment type used before moving past Scan Complete!');
+                    slider.value = Math.min(lastValid, 3);
+                    updateStatusLabel(slider.value);
+                    if (equipmentGroup) {
+                        equipmentGroup.style.borderColor = '#dc3545';
+                        equipmentGroup.style.borderWidth = '3px';
+                        equipmentGroup.style.borderStyle = 'solid';
+                        equipmentGroup.style.borderRadius = '8px';
+                        equipmentGroup.style.padding = '15px';
+                        equipmentGroup.style.boxShadow = '0 0 15px rgba(220, 53, 69, 0.6)';
+                    }
+                    return;
+                }
+            }
+            
+            if (newValue === 4) {
+                let missingFields = [];
+                
+                if (!dataSizeField || !dataSizeField.value.trim()) {
+                    missingFields.push('Data Size (GB)');
+                    if (dataSizeField) {
+                        dataSizeField.style.borderColor = '#fd7e14';
+                        dataSizeField.style.borderWidth = '4px';
+                        dataSizeField.style.boxShadow = '0 0 15px rgba(253, 126, 20, 0.6)';
+                    }
+                }
+                
+                if (!analysisTimeField || !analysisTimeField.value.trim()) {
+                    missingFields.push('Analysis Time (hours)');
+                    if (analysisTimeField) {
+                        analysisTimeField.style.borderColor = '#fd7e14';
+                        analysisTimeField.style.borderWidth = '4px';
+                        analysisTimeField.style.boxShadow = '0 0 15px rgba(253, 126, 20, 0.6)';
+                    }
+                }
+                
+                if (missingFields.length > 0) {
+                    if (dataSizeField && !dataSizeField.value.trim()) {
+                        dataSizeField.focus();
+                    } else if (analysisTimeField && !analysisTimeField.value.trim()) {
+                        analysisTimeField.focus();
+                    }
+                }
+            }
+            
+            if (newValue === 5) {
+                const completionDateField = document.getElementById('editCompletionDate');
+                if (completionDateField && !completionDateField.value) {
+                    const today = new Date().toISOString().split('T')[0];
+                    completionDateField.value = today;
+                }
+            }
+            
+            if (newValue > 4) {
+                let missingFields = [];
+                
+                if (!dataSizeField || !dataSizeField.value.trim()) {
+                    missingFields.push('Data Size (GB)');
+                    if (dataSizeField) {
+                        dataSizeField.style.borderColor = '#dc3545';
+                        dataSizeField.style.borderWidth = '4px';
+                        dataSizeField.style.boxShadow = '0 0 15px rgba(220, 53, 69, 0.6)';
+                    }
+                }
+                
+                if (!analysisTimeField || !analysisTimeField.value.trim()) {
+                    missingFields.push('Analysis Time (hours)');
+                    if (analysisTimeField) {
+                        analysisTimeField.style.borderColor = '#dc3545';
+                        analysisTimeField.style.borderWidth = '4px';
+                        analysisTimeField.style.boxShadow = '0 0 15px rgba(220, 53, 69, 0.6)';
+                    }
+                }
+                
+                if (missingFields.length > 0) {
+                    // alert('⚠️ ' + missingFields.join(' and ') + ' required before moving to Data Transferred!');
+                    slider.value = Math.min(lastValid, 4);
+                    updateStatusLabel(slider.value);
+                    
+                    if (dataSizeField && !dataSizeField.value.trim()) {
+                        dataSizeField.focus();
+                    } else if (analysisTimeField && !analysisTimeField.value.trim()) {
+                        analysisTimeField.focus();
+                    }
+                    return;
+                }
+            }
+            
+            slider.setAttribute('data-last-valid', newValue);
         }
 
-        function deleteLog(index) {
-            if (confirm(`Are you sure you want to delete this ${experimentLogs[index].type} log? This action is not reversible.`)) {
-                experimentLogs.splice(index, 1);
+        function getStatusValue(status) {
+            const statusMap = {
+                'Acknowledged': 0,
+                'Samples Received': 1,
+                'Scanning': 2,
+                'Scan Complete': 3,
+                'Results Ready': 4,
+                'Data Transferred': 5
+            };
+            return statusMap[status] || 0;
+        }
+
+        function getStatusFromValue(value) {
+            const statuses = ['Acknowledged', 'Samples Received', 'Scanning', 'Scan Complete', 'Results Ready', 'Data Transferred'];
+            return statuses[parseInt(value)] || 'Acknowledged';
+        }
+
+        function getStatusClass(status) {
+            return status.toLowerCase().replace(/ /g, '-');
+        }
+
+        function updateStatusLabel(value) {
+            const status = getStatusFromValue(value);
+            const label = document.getElementById('currentStatusLabel');
+            const statusClass = getStatusClass(status);
+            const colors = {
+                'acknowledged': '#6d7a8a',
+                'samples-received': '#5d8a9e',
+                'scanning': '#c9a86a',
+                'scan-complete': '#b8856d',
+                'results-ready': '#5d8a6d',
+                'data-transferred': '#7d6d9a'
+            };
+            if (label) {
+                label.textContent = status;
+                label.style.color = colors[statusClass];
+            }
+        }
+
+        function getStatusColor(status) {
+            const colors = {
+                'Acknowledged': '#6d7a8a',
+                'Samples Received': '#5d8a9e',
+                'Scanning': '#c9a86a',
+                'Scan Complete': '#b8856d',
+                'Results Ready': '#5d8a6d',
+                'Data Transferred': '#7d6d9a'
+            };
+            return colors[status] || '#6d7a8a';
+        }
+
+        function saveTracking(index) {
+            const log = experimentLogs[index];
+            if (log.type === 'NXCT') {
+                const statusValue = document.getElementById('editStatusSlider').value;
+                const newStatus = getStatusFromValue(statusValue);
+                const oldStatus = log.data.status;
+                
+                const daysUsed = document.getElementById('editActualDays').value.trim();
+                const dataSize = document.getElementById('editDataSize').value.trim();
+                const analysisTime = document.getElementById('editAnalysisTime').value.trim();
+                
+                const scanCompleteIndex = ['Acknowledged', 'Samples Received', 'Scanning', 'Scan Complete', 'Results Ready', 'Data Transferred'].indexOf('Scan Complete');
+                const currentStatusIndex = ['Acknowledged', 'Samples Received', 'Scanning', 'Scan Complete', 'Results Ready', 'Data Transferred'].indexOf(newStatus);
+                
+                if (currentStatusIndex >= scanCompleteIndex && !daysUsed) {
+                    // alert('Days Used is required when status is Scan Complete or later!');
+                    document.getElementById('editActualDays').style.borderColor = '#dc3545';
+                    document.getElementById('editActualDays').style.borderWidth = '3px';
+                    document.getElementById('editActualDays').focus();
+                    return;
+                }
+                
+                if (currentStatusIndex >= scanCompleteIndex) {
+                    const microscope = document.getElementById('equipMicroscope')?.checked;
+                    const largeFOV = document.getElementById('equipLargeFOV')?.checked;
+                    const mediumFOV = document.getElementById('equipMediumFOV')?.checked;
+                    const other = document.getElementById('equipOther')?.checked;
+                    
+                    if (!microscope && !largeFOV && !mediumFOV && !other) {
+                        // alert('Please select at least one equipment type used!');
+                        return;
+                    }
+                    
+                    const equipmentUsed = [];
+                    if (microscope) equipmentUsed.push('Microscope');
+                    if (largeFOV) equipmentUsed.push('Large Field of View');
+                    if (mediumFOV) equipmentUsed.push('Medium Field of View');
+                    if (other) equipmentUsed.push('Other');
+                    
+                    log.data.equipmentUsed = equipmentUsed;
+                }
+                
+                const resultsReadyIndex = ['Acknowledged', 'Samples Received', 'Scanning', 'Scan Complete', 'Results Ready', 'Data Transferred'].indexOf('Results Ready');
+                
+                if (currentStatusIndex >= resultsReadyIndex) {
+                    if (!dataSize) {
+                        // alert('Data Size (GB) is required when status is Results Ready or later!');
+                        document.getElementById('editDataSize').style.borderColor = '#dc3545';
+                        document.getElementById('editDataSize').style.borderWidth = '3px';
+                        document.getElementById('editDataSize').focus();
+                        return;
+                    }
+                    if (!analysisTime) {
+                        // alert('Analysis Time (hours) is required when status is Results Ready or later!');
+                        document.getElementById('editAnalysisTime').style.borderColor = '#dc3545';
+                        document.getElementById('editAnalysisTime').style.borderWidth = '3px';
+                        document.getElementById('editAnalysisTime').focus();
+                        return;
+                    }
+                }
+                
+                if (!log.data.statusLog) {
+                    log.data.statusLog = [{ status: oldStatus || 'Acknowledged', date: log.timestamp }];
+                }
+                
+                if (newStatus !== oldStatus) {
+                    log.data.statusLog.push({
+                        status: newStatus,
+                        date: new Date().toLocaleString()
+                    });
+                }
+                
+                log.data.status = newStatus;
+                log.data.completionDate = document.getElementById('editCompletionDate').value;
+                log.data.actualDays = daysUsed;
+                log.data.dataSize = dataSize;
+                log.data.analysisTime = analysisTime;
+                log.data.dataDeleted = document.getElementById('editDataDeleted').value;
+                
                 renderLogs();
                 closeModal('viewDetailsModal');
+                // // alert('Tracking information saved successfully!');
             }
         }
-        
-        // Excel Functionality
-        function exportToExcel() {
-            const dataForSheet = experimentLogs.map(log => {
-                const baseData = {
-                    'Type': log.type,
-                    'ID/Number': log.type === 'NXCT' ? log.data.appNumber : log.data.internalNumber,
-                    'Date Received': log.data.dateReceived,
-                    'Status': log.data.status,
-                    'Project Title': log.type === 'NXCT' ? log.data.projectTitle : log.data.title,
-                    'Lead/Applicant': log.type === 'NXCT' ? log.data.fullName : log.data.lead,
-                    'Organisation': log.data.organisation,
-                    'Email': log.data.email,
-                    'Description': log.type === 'NXCT' ? log.data.projectDescription : log.data.notes,
-                    'Expected Days': log.type === 'NXCT' ? log.data.daysNeeded : log.data.expectedDays,
-                    'Actual Days': log.data.actualDays,
-                    'Completion Date': log.data.completionDate,
-                    'Data Size (GB)': log.data.dataSize,
-                    'Analysis Time (hrs)': log.data.analysisTime,
-                    'Data Deleted': log.data.dataDeleted
-                };
+
+        function saveInternalTracking(index) {
+            const log = experimentLogs[index];
+            if (log.type === 'Internal') {
+                const completed = document.getElementById('internalCompleted').checked;
+                const completionDate = document.getElementById('internalCompletionDate') ? document.getElementById('internalCompletionDate').value : '';
+                const daysUsed = document.getElementById('internalDaysUsed').value.trim();
                 
+                if (completed && !daysUsed) {
+                    // alert('⚠️ Days Used is required when marking as Completed!');
+                    const daysField = document.getElementById('internalDaysUsed');
+                    daysField.style.borderColor = '#dc3545';
+                    daysField.style.borderWidth = '4px';
+                    daysField.style.boxShadow = '0 0 15px rgba(220, 53, 69, 0.6)';
+                    daysField.focus();
+                    return;
+                }
+                
+                log.data.completed = completed;
+                log.data.completionDate = completionDate;
+                log.data.daysUsed = daysUsed;
+                
+                renderLogs();
+                closeModal('viewDetailsModal');
+                // alert('Tracking information saved successfully!');
+            }
+        }
+
+        function deleteApplication(index) {
+            const log = experimentLogs[index];
+            
+            if (!log) {
+                // alert('Error: Application not found');
+                return;
+            }
+            
+            log.deleted = !log.deleted;
+            
+            renderLogs();
+            closeModal('viewDetailsModal');
+            
+            const action = log.deleted ? 'marked as DELETED' : 'RESTORED';
+            // alert(`Application ${action}!`);
+        }
+
+        function exportToExcel() {
+            if (experimentLogs.length === 0) {
+                // alert('No data to export. Please add some applications first.');
+                return;
+            }
+
+            const excelData = [];
+            
+            experimentLogs.forEach(log => {
                 if (log.type === 'NXCT') {
-                    return {
-                        ...baseData,
-                        'Subject Sector': log.data.subjectSector,
-                        'Type of Work': log.data.typeOfWork,
-                        'Free Beamtime': log.data.freeBeamtime,
-                        'Equipment': log.data.equipment,
-                        'Previous Experience': log.data.previousExperience,
-                        'Num Samples': log.data.numSamples,
-                        'Sample Composition': log.data.sampleComposition,
-                        'Sample Dimensions': log.data.sampleDimensions,
-                        'Hazardous': log.data.hazardous,
-                        'Samples Ready': log.data.samplesReady,
-                        'Ready Date': log.data.readyDate,
-                        'Feature Size': log.data.featureSize,
-                        'Scanning Area': log.data.scanningArea,
-                        'Analysis Help': log.data.analysisHelp,
-                        'Analysis Details': log.data.analysisDetails,
-                        'Additional Notes': log.data.additionalNotes
-                    };
+                    const d = log.data;
+                    excelData.push({
+                        'Type': 'NXCT',
+                        'Deleted': log.deleted ? 'Yes' : 'No',
+                        'Application Number': d.appNumber || '',
+                        'Date Received': d.dateReceived || '',
+                        'Full Name': d.fullName || '',
+                        'Organisation': d.organisation || '',
+                        'Email': d.email || '',
+                        'Project Title': d.projectTitle || '',
+                        'Project Description': d.projectDescription || '',
+                        'Primary Subject Sector': d.subjectSector || '',
+                        'Type of Work': d.typeOfWork || '',
+                        'Free Beamtime Access': d.freeBeamtime || '',
+                        'Expected Days Needed': d.daysNeeded || '',
+                        'Equipment Requested': d.equipment || '',
+                        'Previous XCT Experience': d.previousExperience || '',
+                        'Equipment Used': d.equipmentUsed ? d.equipmentUsed.join(', ') : '',
+                        'Number of Samples': d.numSamples || '',
+                        'Sample Composition': d.sampleComposition || '',
+                        'Sample Dimensions': d.sampleDimensions || '',
+                        'Hazardous Samples': d.hazardous || '',
+                        'Samples Ready': d.samplesReady || '',
+                        'Ready Date': d.readyDate || '',
+                        'Feature Size': d.featureSize || '',
+                        'Scanning Area': d.scanningArea || '',
+                        'Analysis Help Needed': d.analysisHelp || '',
+                        'Analysis Details': d.analysisDetails || '',
+                        'Additional Notes': d.additionalNotes || '',
+                        'Status': d.status || 'Acknowledged',
+                        'Completion Date': d.completionDate || '',
+                        'Days Used': d.actualDays || '',
+                        'Data Size (GB)': d.dataSize || '',
+                        'Analysis Time (hours)': d.analysisTime || '',
+                        'Data Deleted': d.dataDeleted || 'No',
+                        'Status Log': d.statusLog ? JSON.stringify(d.statusLog) : '',
+                        'Logged At': log.timestamp
+                    });
                 } else {
-                    return {
-                        ...baseData,
-                        'System Used': log.data.system,
-                        'Beamtime Type': log.data.beamtime
-                    };
+                    excelData.push({
+                        'Type': 'Internal',
+                        'Deleted': log.deleted ? 'Yes' : 'No',
+                        'Application Number': log.data.internalNumber || '',
+                        'Date Received': log.data.dateReceived || '',
+                        'Full Name': log.data.lead || '',
+                        'Organisation': log.data.organisation || '',
+                        'Email': log.data.email || '',
+                        'Project Title': log.data.title || '',
+                        'Project Description': log.data.notes || '',
+                        'Primary Subject Sector': '',
+                        'Type of Work': 'Internal',
+                        'Free Beamtime Access': log.data.beamtime || '',
+                        'Expected Days Needed': log.data.expectedDays || '',
+                        'Equipment Requested': log.data.system || '',
+                        'Previous XCT Experience': '',
+                        'Number of Samples': '',
+                        'Sample Composition': '',
+                        'Sample Dimensions': '',
+                        'Hazardous Samples': '',
+                        'Samples Ready': '',
+                        'Ready Date': '',
+                        'Feature Size': '',
+                        'Scanning Area': '',
+                        'Analysis Help Needed': '',
+                        'Analysis Details': '',
+                        'Additional Notes': '',
+                        'Status': log.data.completed ? 'Completed' : 'In Progress',
+                        'Completion Date': log.data.completionDate || '',
+                        'Days Used': log.data.daysUsed || '',
+                        'Data Size (GB)': '',
+                        'Analysis Time (hours)': '',
+                        'Data Deleted': '',
+                        'Status Log': '',
+                        'Logged At': log.timestamp
+                    });
                 }
             });
 
             const wb = XLSX.utils.book_new();
-            const ws = XLSX.utils.json_to_sheet(dataForSheet);
-            XLSX.utils.book_append_sheet(wb, ws, "Experiment Log");
-            XLSX.writeFile(wb, "NXCT_Experiment_Log.xlsx");
+            const ws = XLSX.utils.json_to_sheet(excelData);
+
+            const colWidths = [
+                { wch: 10 }, { wch: 15 }, { wch: 15 }, { wch: 20 }, { wch: 30 }, { wch: 30 },
+                { wch: 40 }, { wch: 60 }, { wch: 20 }, { wch: 20 }, { wch: 25 }, { wch: 15 },
+                { wch: 25 }, { wch: 20 }, { wch: 15 }, { wch: 20 }, { wch: 30 }, { wch: 15 },
+                { wch: 15 }, { wch: 15 }, { wch: 40 }, { wch: 20 }, { wch: 20 }, { wch: 50 },
+                { wch: 40 }, { wch: 20 }, { wch: 15 }, { wch: 12 }, { wch: 15 }, { wch: 18 },
+                { wch: 15 }, { wch: 40 }, { wch: 20 }
+            ];
+            ws['!cols'] = colWidths;
+
+            XLSX.utils.book_append_sheet(wb, ws, 'Experiment Logs');
+
+            const date = new Date().toISOString().split('T')[0];
+            const filename = `Experiment_Logs_${date}.xlsx`;
+
+            XLSX.writeFile(wb, filename);
         }
-        
+
         function handleExcelImport(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -1392,446 +1810,626 @@
                 try {
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, { type: 'array' });
-                    const sheetName = workbook.SheetNames[0];
-                    const worksheet = workbook.Sheets[sheetName];
-                    const json = XLSX.utils.sheet_to_json(worksheet);
                     
-                    // Simple check to ensure data format is plausible for logs
-                    if (json.length > 0 && json[0].Type) {
-                        importLogs(json);
-                        // alert(`Successfully imported ${json.length} logs.`);
-                        document.getElementById('importExcelInput').value = '';
-                    } else {
-                        // alert('Import failed: Could not recognize log data structure in the file.');
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                    
+                    if (jsonData.length === 0) {
+                        // alert('No data found in Excel file');
+                        return;
                     }
+
+                    const importedLogs = jsonData.map(row => {
+                        if (row.Type === 'NXCT') {
+                            return {
+                                type: 'NXCT',
+                                deleted: row.Deleted === 'Yes',
+                                timestamp: row['Logged At'] || new Date().toLocaleString(),
+                                data: {
+                                    appNumber: row['Application Number'] || '',
+                                    dateReceived: row['Date Received'] || '',
+                                    fullName: row['Full Name'] || '',
+                                    organisation: row['Organisation'] || '',
+                                    email: row['Email'] || '',
+                                    projectTitle: row['Project Title'] || '',
+                                    projectDescription: row['Project Description'] || '',
+                                    subjectSector: row['Primary Subject Sector'] || '',
+                                    typeOfWork: row['Type of Work'] || '',
+                                    freeBeamtime: row['Free Beamtime Access'] || '',
+                                    daysNeeded: row['Expected Days Needed'] || '',
+                                    equipment: row['Equipment Requested'] || '',
+                                    previousExperience: row['Previous XCT Experience'] || '',
+                                    equipmentUsed: row['Equipment Used'] ? row['Equipment Used'].split(', ').filter(e => e) : [],
+                                    numSamples: row['Number of Samples'] || '',
+                                    sampleComposition: row['Sample Composition'] || '',
+                                    sampleDimensions: row['Sample Dimensions'] || '',
+                                    hazardous: row['Hazardous Samples'] || '',
+                                    samplesReady: row['Samples Ready'] || '',
+                                    readyDate: row['Ready Date'] || '',
+                                    featureSize: row['Feature Size'] || '',
+                                    scanningArea: row['Scanning Area'] || '',
+                                    analysisHelp: row['Analysis Help Needed'] || '',
+                                    analysisDetails: row['Analysis Details'] || '',
+                                    additionalNotes: row['Additional Notes'] || '',
+                                    status: row['Status'] || 'Acknowledged',
+                                    completionDate: row['Completion Date'] || '',
+                                    actualDays: row['Days Used'] || '',
+                                    dataSize: row['Data Size (GB)'] || '',
+                                    analysisTime: row['Analysis Time (hours)'] || '',
+                                    dataDeleted: row['Data Deleted'] || 'No',
+                                    statusLog: row['Status Log'] ? JSON.parse(row['Status Log']) : [{ status: row['Status'] || 'Acknowledged', date: row['Logged At'] }]
+                                }
+                            };
+                        } else if (row.Type === 'Internal') {
+                            return {
+                                type: 'Internal',
+                                deleted: row.Deleted === 'Yes',
+                                timestamp: row['Logged At'] || new Date().toLocaleString(),
+                                data: {
+                                    internalNumber: row['Application Number'] || '',
+                                    dateReceived: row['Date Received'] || '',
+                                    title: row['Project Title'] || '',
+                                    lead: row['Full Name'] || '',
+                                    organisation: row['Organisation'] || '',
+                                    email: row['Email'] || '',
+                                    system: row['Equipment Requested'] || '',
+                                    expectedDays: row['Expected Days Needed'] || '',
+                                    beamtime: row['Free Beamtime Access'] || '',
+                                    notes: row['Project Description'] || '',
+                                    completed: row['Status'] === 'Completed',
+                                    completionDate: row['Completion Date'] || '',
+                                    daysUsed: row['Days Used'] || ''
+                                }
+                            };
+                        }
+                        return null;
+                    }).filter(log => log !== null);
+
+                    if (importedLogs.length === 0) {
+                        // alert('No valid logs found in Excel file');
+                        return;
+                    }
+
+                    const shouldAppend = confirm(
+                        `Found ${importedLogs.length} log(s) in the file.\n\n` +
+                        `Click OK to ADD these to your current logs (${experimentLogs.length} existing).\n` +
+                        `Click Cancel to REPLACE all current logs with imported ones.`
+                    );
+
+                    if (shouldAppend) {
+                        experimentLogs = [...experimentLogs, ...importedLogs];
+                        // alert(`Successfully imported ${importedLogs.length} log(s). Total logs: ${experimentLogs.length}`);
+                    } else {
+                        experimentLogs = importedLogs;
+                        // alert(`Successfully imported ${importedLogs.length} log(s). Previous logs replaced.`);
+                    }
+
+                    initializeInternalCounter();
+                    renderLogs();
+                    
+                    event.target.value = '';
+
                 } catch (error) {
-                    console.error('Error importing file:', error);
-                    // alert('Import failed: Could not read the file.');
+                    console.error('Error importing Excel:', error);
+                    // alert('Error importing Excel file. Please make sure it\'s a valid exported file.');
                 }
             };
+
             reader.readAsArrayBuffer(file);
         }
-        
-        function importLogs(json) {
-            json.forEach(row => {
-                // Determine log type and structure the data object
-                let logData = {};
-                let type = row.Type;
-                
-                if (type === 'NXCT') {
-                    logData = {
-                        appNumber: row['ID/Number'],
-                        dateReceived: row['Date Received'],
-                        fullName: row['Lead/Applicant'],
-                        organisation: row['Organisation'],
-                        email: row['Email'],
-                        projectTitle: row['Project Title'],
-                        projectDescription: row['Description'],
-                        subjectSector: row['Subject Sector'] || '',
-                        typeOfWork: row['Type of Work'] || '',
-                        freeBeamtime: row['Free Beamtime'] || '',
-                        daysNeeded: row['Expected Days'],
-                        equipment: row['Equipment'] || '',
-                        previousExperience: row['Previous Experience'] || '',
-                        numSamples: row['Num Samples'] || '',
-                        sampleComposition: row['Sample Composition'] || '',
-                        sampleDimensions: row['Sample Dimensions'] || '',
-                        hazardous: row['Hazardous'] || '',
-                        samplesReady: row['Samples Ready'] || '',
-                        readyDate: row['Ready Date'] || '',
-                        featureSize: row['Feature Size'] || '',
-                        scanningArea: row['Scanning Area'] || '',
-                        analysisHelp: row['Analysis Help'] || '',
-                        analysisDetails: row['Analysis Details'] || '',
-                        additionalNotes: row['Additional Notes'] || '',
-                        status: row.Status || 'Acknowledged',
-                        completionDate: row['Completion Date'] || '',
-                        actualDays: row['Actual Days'] || '',
-                        dataSize: row['Data Size (GB)'] || '',
-                        analysisTime: row['Analysis Time (hrs)'] || '',
-                        dataDeleted: row['Data Deleted'] || 'No',
-                        statusLog: [{ status: row.Status || 'Acknowledged', date: new Date().toLocaleString() }]
-                    };
-                } else if (type === 'Internal') {
-                    logData = {
-                        internalNumber: row['ID/Number'],
-                        dateReceived: row['Date Received'],
-                        title: row['Project Title'],
-                        lead: row['Lead/Applicant'],
-                        organisation: row['Organisation'],
-                        email: row['Email'],
-                        system: row['System Used'] || '',
-                        expectedDays: row['Expected Days'],
-                        beamtime: row['Beamtime Type'] || 'Free',
-                        notes: row['Description'],
-                        status: row.Status || 'Acknowledged',
-                        completionDate: row['Completion Date'] || '',
-                        actualDays: row['Actual Days'] || '',
-                        dataSize: row['Data Size (GB)'] || '',
-                        analysisTime: row['Analysis Time (hrs)'] || '',
-                        dataDeleted: row['Data Deleted'] || 'No',
-                        statusLog: [{ status: row.Status || 'Acknowledged', date: new Date().toLocaleString() }]
-                    };
-                }
 
-                if (type) {
-                    experimentLogs.unshift({
-                        type: type,
-                        timestamp: new Date().toLocaleString(),
-                        data: logData
+        renderLogs();
+        initializeInternalCounter();
+        
+        document.getElementById('viewToggle').classList.add('active');
+
+        function showAnalysis() {
+            const analysisContent = document.getElementById('analysisContent');
+            
+            const activeLogs = experimentLogs.filter(log => !log.deleted);
+            
+            let totalApplications = activeLogs.length;
+            let nxctCount = activeLogs.filter(log => log.type === 'NXCT').length;
+            let internalCount = activeLogs.filter(log => log.type === 'Internal').length;
+            
+            let freeDays = 0;
+            let paidDays = 0;
+            
+            activeLogs.forEach(log => {
+                const daysUsed = parseFloat(log.data.actualDays || log.data.daysUsed || 0);
+                const beamtime = log.data.freeBeamtime || log.data.beamtime || '';
+                
+                if (beamtime.toLowerCase().includes('free')) {
+                    freeDays += daysUsed;
+                } else if (beamtime.toLowerCase().includes('paid')) {
+                    paidDays += daysUsed;
+                }
+            });
+            
+            const statusCounts = {};
+            const equipmentUsedCounts = {};
+            activeLogs.filter(log => log.type === 'NXCT').forEach(log => {
+                const status = log.data.status || 'Acknowledged';
+                statusCounts[status] = (statusCounts[status] || 0) + 1;
+                
+                if (log.data.equipmentUsed && log.data.equipmentUsed.length > 0) {
+                    log.data.equipmentUsed.forEach(equip => {
+                        equipmentUsedCounts[equip] = (equipmentUsedCounts[equip] || 0) + 1;
                     });
                 }
             });
             
-            initializeInternalCounter();
-            renderLogs();
-        }
-
-        // Analysis Functions
-        let analysisChart = null;
-
-        function showAnalysis() {
-            renderAnalysis();
-            document.getElementById('analysisModal').classList.add('active');
-        }
-
-        function renderAnalysis() {
-            const analysisContent = document.getElementById('analysisContent');
-            analysisContent.innerHTML = ''; // Clear previous content
-
-            // 1. Status Overview (Pie Chart)
-            const statusCounts = experimentLogs.reduce((acc, log) => {
-                acc[log.data.status] = (acc[log.data.status] || 0) + 1;
-                return acc;
-            }, {});
-
-            const statusLabels = Object.keys(statusCounts);
-            const statusData = Object.values(statusCounts);
-            const statusColors = statusLabels.map(label => {
-                switch (label) {
-                    case 'Acknowledged': return '#6d7a8a';
-                    case 'Samples Received': return '#5d8a9e';
-                    case 'Scanning': return '#c9a86a';
-                    case 'Scan Complete': return '#b8856d';
-                    case 'Results Ready': return '#5d8a6d';
-                    case 'Data Transferred': return '#7d6d9a';
-                    default: return '#ccc';
+            const internalLogs = activeLogs.filter(log => log.type === 'Internal');
+            let internalDaysUsed = 0;
+            let internalCompleted = 0;
+            let internalInProgress = 0;
+            
+            internalLogs.forEach(log => {
+                const days = parseFloat(log.data.daysUsed || 0);
+                internalDaysUsed += days;
+                if (log.data.completed) {
+                    internalCompleted++;
+                } else {
+                    internalInProgress++;
                 }
             });
-
-            analysisContent.innerHTML += `
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
-                    <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-                        <h3 style="color: #2c4a6e; margin-bottom: 15px;">Application Status Overview</h3>
-                        <div style="max-height: 400px;"><canvas id="statusChart"></canvas></div>
+            
+            analysisContent.innerHTML = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
+                    <div style="background: #f0f5f7; padding: 20px; border-radius: 10px; text-align: center; border-left: 4px solid #2c4a6e;">
+                        <div style="font-size: 2em; font-weight: bold; color: #2c4a6e;">${totalApplications}</div>
+                        <div style="color: #666; margin-top: 5px;">Total Applications</div>
                     </div>
-                    <div id="summaryCards" style="display: flex; flex-direction: column; gap: 15px;">
+                    <div style="background: #f0f5f7; padding: 20px; border-radius: 10px; text-align: center; border-left: 4px solid #5d8a9e;">
+                        <div style="font-size: 2em; font-weight: bold; color: #5d8a9e;">${nxctCount}</div>
+                        <div style="color: #666; margin-top: 5px;">NXCT Applications</div>
+                    </div>
+                    <div style="background: #f0f5f7; padding: 20px; border-radius: 10px; text-align: center; border-left: 4px solid #8e7a6d;">
+                        <div style="font-size: 2em; font-weight: bold; color: #8e7a6d;">${internalCount}</div>
+                        <div style="color: #666; margin-top: 5px;">Internal Applications</div>
+                    </div>
+                    <div style="background: #f0f5f7; padding: 20px; border-radius: 10px; text-align: center; border-left: 4px solid #4a7c59;">
+                        <div style="font-size: 2em; font-weight: bold; color: #4a7c59;">${(freeDays + paidDays).toFixed(1)}</div>
+                        <div style="color: #666; margin-top: 5px;">Total Days Used</div>
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 30px; margin-top: 30px;">
+                    <div>
+                        <h3 style="color: #2c4a6e; margin-bottom: 15px; text-align: center;">Free vs Paid Beamtime (Days)</h3>
+                        <canvas id="beamtimeChart" style="max-height: 300px;"></canvas>
+                    </div>
+                    <div>
+                        <h3 style="color: #2c4a6e; margin-bottom: 15px; text-align: center;">NXCT Application Status</h3>
+                        <canvas id="statusChart" style="max-height: 300px;"></canvas>
+                    </div>
+                    <div>
+                        <h3 style="color: #2c4a6e; margin-bottom: 15px; text-align: center;">Equipment Used</h3>
+                        <canvas id="equipmentUsedChart" style="max-height: 300px;"></canvas>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+                    <h3 style="color: #2c4a6e; margin-bottom: 15px;">NXCT Summary</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div><strong>Free Beamtime Days:</strong> ${freeDays.toFixed(1)} days</div>
+                        <div><strong>Paid Beamtime Days:</strong> ${paidDays.toFixed(1)} days</div>
+                        <div><strong>Free Percentage:</strong> ${(freeDays + paidDays) > 0 ? ((freeDays / (freeDays + paidDays)) * 100).toFixed(1) : 0}%</div>
+                        <div><strong>Paid Percentage:</strong> ${(freeDays + paidDays) > 0 ? ((paidDays / (freeDays + paidDays)) * 100).toFixed(1) : 0}%</div>
+                    </div>
+                    ${Object.keys(equipmentUsedCounts).length > 0 ? `
+                    <div style="margin-top: 15px; padding-top: 15px; border-top: 2px solid #e0e0e0;">
+                        <strong style="display: block; margin-bottom: 10px;">Equipment Usage:</strong>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            ${Object.entries(equipmentUsedCounts).map(([equip, count]) => 
+                                `<div>• ${equip}: ${count} time${count > 1 ? 's' : ''}</div>`
+                            ).join('')}
                         </div>
+                    </div>
+                    ` : ''}
                 </div>
-                <div style="border-top: 2px solid #e0e0e0; padding-top: 20px; margin-bottom: 20px;">
-                    <h3 style="color: #2c4a6e; margin-bottom: 15px;">Data Usage & Metrics</h3>
-                    <div style="max-height: 400px;"><canvas id="dataMetricsChart"></canvas></div>
+                
+                <div style="margin-top: 20px; padding: 20px; background: #f0f5f7; border-radius: 10px; border-left: 4px solid #8e7a6d;">
+                    <h3 style="color: #2c4a6e; margin-bottom: 15px;">Internal Applications Summary</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+                        <div><strong>Total Internal Apps:</strong> ${internalCount}</div>
+                        <div><strong>Completed:</strong> ${internalCompleted}</div>
+                        <div><strong>In Progress:</strong> ${internalInProgress}</div>
+                        <div><strong>Total Days Used:</strong> ${internalDaysUsed.toFixed(1)} days</div>
+                        <div><strong>Average Days/App:</strong> ${internalCount > 0 ? (internalDaysUsed / internalCount).toFixed(1) : 0} days</div>
+                    </div>
                 </div>
             `;
             
-            // Render Status Chart
-            if (analysisChart) {
-                analysisChart.destroy();
-            }
-            const ctxStatus = document.getElementById('statusChart').getContext('2d');
-            analysisChart = new Chart(ctxStatus, {
-                type: 'doughnut',
-                data: {
-                    labels: statusLabels,
-                    datasets: [{
-                        data: statusData,
-                        backgroundColor: statusColors,
-                        hoverOffset: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'right',
-                        },
-                        title: {
-                            display: true,
-                            text: 'Total Logs by Status'
-                        }
-                    }
-                }
-            });
+            document.getElementById('analysisModal').classList.add('active');
             
-            // Render Data Metrics Chart (Example: Data Size vs. Analysis Time for completed tasks)
-            const completedLogs = experimentLogs.filter(log => log.data.completionDate && log.data.dataSize && log.data.analysisTime);
-            
-            const dataMetricsLabels = completedLogs.map(log => log.type === 'NXCT' ? log.data.appNumber : log.data.internalNumber);
-            const dataSizes = completedLogs.map(log => parseFloat(log.data.dataSize) || 0);
-            const analysisTimes = completedLogs.map(log => parseFloat(log.data.analysisTime) || 0);
-
-            const ctxMetrics = document.getElementById('dataMetricsChart').getContext('2d');
-            new Chart(ctxMetrics, {
-                type: 'bar',
-                data: {
-                    labels: dataMetricsLabels,
-                    datasets: [
-                        {
-                            label: 'Data Size (GB)',
-                            data: dataSizes,
-                            backgroundColor: 'rgba(44, 74, 110, 0.8)',
-                            yAxisID: 'y'
-                        },
-                        {
-                            label: 'Analysis Time (hrs)',
-                            data: analysisTimes,
-                            backgroundColor: 'rgba(93, 138, 158, 0.8)',
-                            yAxisID: 'y1'
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: 'Data Size and Analysis Time for Completed Logs'
-                        }
+            setTimeout(() => {
+                const ctx1 = document.getElementById('beamtimeChart').getContext('2d');
+                new Chart(ctx1, {
+                    type: 'pie',
+                    data: {
+                        labels: ['Free', 'Paid'],
+                        datasets: [{
+                            data: [freeDays, paidDays],
+                            backgroundColor: ['#4a7c59', '#b8856d'],
+                            borderWidth: 2,
+                            borderColor: '#fff'
+                        }]
                     },
-                    scales: {
-                        y: {
-                            type: 'linear',
-                            display: true,
-                            position: 'left',
-                            title: {
-                                display: true,
-                                text: 'Data Size (GB)'
-                            }
-                        },
-                        y1: {
-                            type: 'linear',
-                            display: true,
-                            position: 'right',
-                            grid: {
-                                drawOnChartArea: false, // only draw grid lines for the left axis
-                            },
-                            title: {
-                                display: true,
-                                text: 'Analysis Time (hrs)'
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
                             }
                         }
                     }
+                });
+                
+                const ctx2 = document.getElementById('statusChart').getContext('2d');
+                new Chart(ctx2, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(statusCounts),
+                        datasets: [{
+                            data: Object.values(statusCounts),
+                            backgroundColor: ['#6d7a8a', '#5d8a9e', '#c9a86a', '#b8856d', '#5d8a6d', '#7d6d9a'],
+                            borderWidth: 2,
+                            borderColor: '#fff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+                
+                const ctx3 = document.getElementById('equipmentUsedChart').getContext('2d');
+                const hasEquipmentData = Object.keys(equipmentUsedCounts).length > 0;
+                
+                if (hasEquipmentData) {
+                    new Chart(ctx3, {
+                        type: 'bar',
+                        data: {
+                            labels: Object.keys(equipmentUsedCounts),
+                            datasets: [{
+                                label: 'Times Used',
+                                data: Object.values(equipmentUsedCounts),
+                                backgroundColor: ['#5d7a9e', '#c9a86a', '#5d8a6d', '#7d6d9a'],
+                                borderWidth: 2,
+                                borderColor: '#fff'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        stepSize: 1
+                                    }
+                                }
+                            }
+                        }
+                    });
+                } else {
+                    ctx3.canvas.parentElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 300px; color: #999;">No equipment data yet</div>';
                 }
-            });
+            }, 100);
+        }
 
-            // Summary Cards
-            const totalLogs = experimentLogs.length;
-            const avgDataSize = (dataSizes.reduce((a, b) => a + b, 0) / dataSizes.length) || 0;
-            const avgDays = (completedLogs.map(log => parseFloat(log.data.actualDays) || 0).reduce((a, b) => a + b, 0) / completedLogs.length) || 0;
-            const deletedCount = experimentLogs.filter(log => log.data.dataDeleted === 'Yes').length;
+        function generateTestData() {
+            const names = ['Dr. Sarah Johnson', 'Prof. Michael Chen', 'Dr. Emma Williams', 'Dr. James Miller', 'Prof. Lisa Anderson', 
+                          'Dr. Robert Taylor', 'Dr. Maria Garcia', 'Prof. David Brown', 'Dr. Jennifer Davis', 'Dr. Christopher Lee',
+                          'Prof. Patricia Martinez', 'Dr. Thomas Wilson', 'Dr. Jessica Moore', 'Prof. Daniel Jackson', 'Dr. Karen White',
+                          'Dr. Steven Harris', 'Prof. Nancy Martin', 'Dr. Kevin Thompson', 'Dr. Betty Garcia', 'Prof. Mark Robinson'];
             
-            const summaryCardsHTML = `
-                ${createSummaryCard('Total Logs', totalLogs, '#2c4a6e')}
-                ${createSummaryCard('Avg. Data Size (GB)', avgDataSize.toFixed(2), '#5d8a9e')}
-                ${createSummaryCard('Avg. Project Days', avgDays.toFixed(1), '#4a7c59')}
-                ${createSummaryCard('Data Logs Deleted', deletedCount, '#c94a4a')}
-            `;
-            document.getElementById('summaryCards').innerHTML = summaryCardsHTML;
+            const organisations = ['Imperial College London', 'University of Oxford', 'University of Cambridge', 'Manchester University',
+                                  'University of Edinburgh', 'King\'s College London', 'Bristol University', 'Southampton University'];
+            
+            const titles = ['Bone Microstructure Analysis', 'Composite Material Testing', 'Archaeological Artifact Scanning',
+                           'Geological Sample Examination', 'Biomedical Implant Study', 'Aerospace Component Testing',
+                           'Marine Fossil Investigation', 'Pharmaceutical Formulation Study', 'Polymer Degradation Analysis',
+                           'Battery Material Characterization', 'Concrete Porosity Study', 'Wood Density Mapping',
+                           'Textile Fiber Analysis', 'Semiconductor Device Inspection', 'Additive Manufacturing Quality Control',
+                           'Rock Core Analysis', 'Plant Root Structure Study', 'Ceramic Crack Detection',
+                           'Fuel Cell Component Testing', 'Metamaterial Structure Analysis'];
+            
+            const equipmentOptions = ['Nikon XTH 225', 'Zeiss Xradia 520', 'Nikon XT H 160', 'GE Phoenix v|tome|x L 240', 
+                                     'Bruker SkyScan 1272', 'Zeiss Xradia 810 Ultra'];
+            
+            const statuses = ['Acknowledged', 'Samples Received', 'Scanning', 'Scan Complete', 'Results Ready', 'Data Transferred'];
+            const beamtimeTypes = ['Free', 'Paid'];
+            
+            for (let i = 0; i < 20; i++) {
+                const appNumber = `2024-${String(Math.floor(Math.random() * 200) + 1).padStart(3, '0')}`;
+                const dateReceived = new Date(2024, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1).toLocaleDateString('en-GB');
+                const name = names[i];
+                const org = organisations[Math.floor(Math.random() * organisations.length)];
+                const title = titles[i];
+                const status = statuses[Math.floor(Math.random() * statuses.length)];
+                const beamtime = beamtimeTypes[Math.floor(Math.random() * beamtimeTypes.length)];
+                const equipment = equipmentOptions[Math.floor(Math.random() * equipmentOptions.length)];
+                const daysNeeded = Math.floor(Math.random() * 5) + 1;
+                const daysUsed = status === 'Scan Complete' || status === 'Results Ready' || status === 'Data Transferred' ? 
+                                Math.floor(Math.random() * daysNeeded) + 1 : '';
+                
+                let equipmentUsed = [];
+                if (status === 'Scan Complete' || status === 'Results Ready' || status === 'Data Transferred') {
+                    const equipmentTypes = ['Microscope', 'Large Field of View', 'Medium Field of View', 'Other'];
+                    const numEquipment = Math.floor(Math.random() * 3) + 1;
+                    const shuffled = equipmentTypes.sort(() => 0.5 - Math.random());
+                    equipmentUsed = shuffled.slice(0, numEquipment);
+                }
+                
+                const data = {
+                    appNumber: appNumber,
+                    dateReceived: dateReceived,
+                    fullName: name,
+                    organisation: org,
+                    email: name.toLowerCase().replace(/\s+/g, '.').replace('dr.', '').replace('prof.', '') + '@' + org.toLowerCase().replace(/\s+/g, '').replace('\'', '') + '.ac.uk',
+                    projectTitle: title,
+                    projectDescription: `This research project aims to investigate ${title.toLowerCase()} using advanced X-ray computed tomography techniques.`,
+                    subjectSector: 'Materials Science',
+                    typeOfWork: 'Research',
+                    freeBeamtime: beamtime,
+                    daysNeeded: String(daysNeeded),
+                    equipment: equipment,
+                    previousExperience: Math.random() > 0.5 ? 'Yes' : 'No',
+                    equipmentUsed: equipmentUsed,
+                    numSamples: String(Math.floor(Math.random() * 5) + 1),
+                    sampleComposition: 'Various materials',
+                    sampleDimensions: '10mm x 10mm x 10mm',
+                    hazardous: 'No',
+                    samplesReady: 'Yes',
+                    readyDate: dateReceived,
+                    featureSize: '10-100 micrometers',
+                    scanningArea: 'Whole sample',
+                    analysisHelp: Math.random() > 0.7 ? 'Yes' : 'No',
+                    analysisDetails: '',
+                    additionalNotes: '',
+                    status: status,
+                    completionDate: status === 'Data Transferred' ? new Date(2024, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1).toISOString().split('T')[0] : '',
+                    actualDays: daysUsed,
+                    dataSize: status === 'Results Ready' || status === 'Data Transferred' ? String((Math.random() * 50 + 10).toFixed(1)) : '',
+                    analysisTime: status === 'Results Ready' || status === 'Data Transferred' ? String((Math.random() * 20 + 5).toFixed(1)) : '',
+                    dataDeleted: 'No',
+                    statusLog: [{ status: status, date: new Date().toLocaleString() }]
+                };
+                
+                experimentLogs.unshift({ 
+                    type: 'NXCT', 
+                    timestamp: new Date(2024, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1).toLocaleString(), 
+                    data 
+                });
+            }
+            
+            renderLogs();
+            // alert('Generated 20 random NXCT applications for testing!');
         }
 
-        function createSummaryCard(title, value, color) {
-            return `
-                <div style="background: white; padding: 20px; border-radius: 10px; border-left: 5px solid ${color}; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-                    <p style="color: #666; font-size: 0.9em; margin-bottom: 5px;">${title}</p>
-                    <strong style="color: ${color}; font-size: 1.8em;">${value}</strong>
-                </div>
-            `;
-        }
-        
-        // Maintenance Functions
         function showMaintenance() {
+            selectedStartDate = null;
+            selectedEndDate = null;
+            currentCalendarMonth = new Date();
             renderMaintenanceCalendar();
             renderMaintenanceList();
             document.getElementById('maintenanceModal').classList.add('active');
         }
-        
-        function getDaysInMonth(year, month) {
-            return new Date(year, month + 1, 0).getDate();
-        }
 
         function renderMaintenanceCalendar() {
-            const calendarEl = document.getElementById('maintenanceCalendar');
+            const calendar = document.getElementById('maintenanceCalendar');
             const year = currentCalendarMonth.getFullYear();
             const month = currentCalendarMonth.getMonth();
-            const today = new Date();
-            const daysInMonth = getDaysInMonth(year, month);
-            const firstDayIndex = new Date(year, month, 1).getDay(); // 0 (Sun) to 6 (Sat)
-            const monthName = currentCalendarMonth.toLocaleString('default', { month: 'long' });
             
-            let calendarHTML = `
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            const startingDayOfWeek = firstDay.getDay();
+            
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                               'July', 'August', 'September', 'October', 'November', 'December'];
+            
+            let html = `
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <button class="btn close-btn" onclick="changeCalendarMonth(-1)" style="padding: 5px 10px; font-size: 0.9em;">&lt; Prev</button>
-                    <h4 style="color: #2c4a6e;">${monthName} ${year}</h4>
-                    <button class="btn close-btn" onclick="changeCalendarMonth(1)" style="padding: 5px 10px; font-size: 0.9em;">Next &gt;</button>
+                    <button onclick="changeMonth(-1)" style="background: #2c4a6e; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer;">◀ Prev</button>
+                    <strong style="font-size: 1.1em;">${monthNames[month]} ${year}</strong>
+                    <button onclick="changeMonth(1)" style="background: #2c4a6e; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer;">Next ▶</button>
                 </div>
-                <div style="display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-weight: 700; color: #5d7a9e; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">
-                    <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
-                </div>
-                <div style="display: grid; grid-template-columns: repeat(7, 1fr); text-align: center;">
+                <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px;">
+                    <div style="text-align: center; font-weight: 600; padding: 8px; color: #666;">Sun</div>
+                    <div style="text-align: center; font-weight: 600; padding: 8px; color: #666;">Mon</div>
+                    <div style="text-align: center; font-weight: 600; padding: 8px; color: #666;">Tue</div>
+                    <div style="text-align: center; font-weight: 600; padding: 8px; color: #666;">Wed</div>
+                    <div style="text-align: center; font-weight: 600; padding: 8px; color: #666;">Thu</div>
+                    <div style="text-align: center; font-weight: 600; padding: 8px; color: #666;">Fri</div>
+                    <div style="text-align: center; font-weight: 600; padding: 8px; color: #666;">Sat</div>
             `;
-
-            // Blanks for the start of the month
-            for (let i = 0; i < firstDayIndex; i++) {
-                calendarHTML += `<div></div>`;
+            
+            for (let i = 0; i < startingDayOfWeek; i++) {
+                html += '<div></div>';
             }
-
-            // Days of the month
+            
             for (let day = 1; day <= daysInMonth; day++) {
-                const date = new Date(year, month, day);
-                const isToday = date.toDateString() === today.toDateString();
-                const isSelectedStart = selectedStartDate && date.toDateString() === selectedStartDate.toDateString();
-                const isSelectedEnd = selectedEndDate && date.toDateString() === selectedEndDate.toDateString();
-                const isInRange = selectedStartDate && selectedEndDate && date > selectedStartDate && date < selectedEndDate;
+                const currentDate = new Date(year, month, day);
+                const dateStr = currentDate.toISOString().split('T')[0];
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const isToday = currentDate.getTime() === today.getTime();
+                const isPast = currentDate < today;
                 
-                const hasMaintenance = maintenanceRecords.some(record => {
-                    const start = new Date(record.startDate);
-                    const end = new Date(record.endDate);
-                    // Normalize dates to midnight for comparison
-                    const d1 = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-                    const d2 = new Date(start.getFullYear(), start.getMonth(), start.getDate());
-                    const d3 = new Date(end.getFullYear(), end.getMonth(), end.getDate());
-                    
-                    return d1 >= d2 && d1 <= d3;
-                });
+                let bgColor = '#fff';
+                let textColor = '#333';
+                let border = '1px solid #ddd';
                 
-                let dayStyle = `padding: 10px 5px; cursor: pointer; border-radius: 5px; margin: 2px; transition: background 0.2s; position: relative;`;
-                let dayClasses = '';
-                
-                if (hasMaintenance) {
-                    dayStyle += `background: #f8e5e5; color: #c94a4a; font-weight: 600; border: 1px solid #c94a4a;`;
+                if (isPast && !isToday) {
+                    bgColor = '#f5f5f5';
+                    textColor = '#999';
                 }
                 
                 if (isToday) {
-                    dayStyle += `border: 2px solid #2c4a6e;`;
+                    border = '2px solid #2c4a6e';
                 }
-                if (isSelectedStart || isSelectedEnd) {
-                    dayStyle += `background: #2c4a6e !important; color: white !important; font-weight: 700;`;
+                
+                if (selectedStartDate && selectedEndDate) {
+                    const startTime = new Date(selectedStartDate).getTime();
+                    const endTime = new Date(selectedEndDate).getTime();
+                    const currentTime = currentDate.getTime();
+                    
+                    if (currentTime >= startTime && currentTime <= endTime) {
+                        bgColor = '#c9e4ff';
+                        textColor = '#2c4a6e';
+                    }
+                    if (dateStr === selectedStartDate || dateStr === selectedEndDate) {
+                        bgColor = '#2c4a6e';
+                        textColor = '#fff';
+                    }
+                } else if (selectedStartDate && dateStr === selectedStartDate) {
+                    bgColor = '#2c4a6e';
+                    textColor = '#fff';
                 }
-                if (isInRange) {
-                    dayStyle += `background: #a9c1dd;`;
-                }
-
-                calendarHTML += `
-                    <div style="${dayStyle}" onclick="selectDate(${year}, ${month}, ${day})">
+                
+                html += `
+                    <div onclick="selectDate('${dateStr}')" 
+                         style="text-align: center; padding: 12px; background: ${bgColor}; color: ${textColor}; 
+                                border: ${border}; border-radius: 5px; cursor: pointer; transition: all 0.2s;
+                                ${isPast && !isToday ? 'cursor: not-allowed;' : ''}"
+                         onmouseover="if (!'${isPast}' || '${isToday}') this.style.background='#e0e0e0'; if ('${selectedStartDate}' && !'${selectedEndDate}') this.style.background='#c9e4ff';"
+                         onmouseout="this.style.background='${bgColor}'">
                         ${day}
                     </div>
                 `;
             }
-
-            calendarHTML += `</div>`;
-            calendarEl.innerHTML = calendarHTML;
+            
+            html += '</div>';
+            calendar.innerHTML = html;
             updateDateRangeDisplay();
         }
-        
-        function changeCalendarMonth(offset) {
-            currentCalendarMonth.setMonth(currentCalendarMonth.getMonth() + offset);
+
+        function changeMonth(delta) {
+            currentCalendarMonth.setMonth(currentCalendarMonth.getMonth() + delta);
             renderMaintenanceCalendar();
         }
 
-        function selectDate(year, month, day) {
-            const selectedDate = new Date(year, month, day);
+        function selectDate(dateStr) {
+            const selectedDate = new Date(dateStr);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            if (selectedDate < today) {
+                return;
+            }
             
             if (!selectedStartDate) {
-                selectedStartDate = selectedDate;
+                selectedStartDate = dateStr;
                 selectedEndDate = null;
-            } else if (!selectedEndDate && selectedDate > selectedStartDate) {
-                selectedEndDate = selectedDate;
+            } else if (!selectedEndDate) {
+                if (new Date(dateStr) < new Date(selectedStartDate)) {
+                    selectedEndDate = selectedStartDate;
+                    selectedStartDate = dateStr;
+                } else {
+                    selectedEndDate = dateStr;
+                }
             } else {
-                selectedStartDate = selectedDate;
+                selectedStartDate = dateStr;
                 selectedEndDate = null;
             }
             
             renderMaintenanceCalendar();
         }
-        
+
         function updateDateRangeDisplay() {
-            const displayEl = document.getElementById('dateRangeDisplay');
+            const display = document.getElementById('dateRangeDisplay');
             if (selectedStartDate && selectedEndDate) {
-                const start = selectedStartDate.toLocaleDateString('en-GB');
-                const end = selectedEndDate.toLocaleDateString('en-GB');
-                displayEl.innerHTML = `<strong>Selected Range:</strong> <span style="color: #c94a4a;">${start}</span> to <span style="color: #c94a4a;">${end}</span>`;
+                const start = new Date(selectedStartDate).toLocaleDateString('en-GB');
+                const end = new Date(selectedEndDate).toLocaleDateString('en-GB');
+                display.textContent = `Selected: ${start} to ${end}`;
+                display.style.color = '#4a7c59';
             } else if (selectedStartDate) {
-                const start = selectedStartDate.toLocaleDateString('en-GB');
-                displayEl.innerHTML = `<strong>Start Date:</strong> <span style="color: #c94a4a;">${start}</span>. Select End Date.`;
+                display.textContent = 'Start date selected. Click on end date.';
+                display.style.color = '#c9a86a';
             } else {
-                displayEl.textContent = 'Click on calendar to select start date';
+                display.textContent = 'Click on calendar to select start date';
+                display.style.color = '#2c4a6e';
             }
         }
-        
+
         function resetCalendar() {
             selectedStartDate = null;
             selectedEndDate = null;
             renderMaintenanceCalendar();
-            document.getElementById('maintenanceDescription').value = '';
         }
 
         function addMaintenance() {
             const description = document.getElementById('maintenanceDescription').value.trim();
-            if (!selectedStartDate || !selectedEndDate) {
-                alert('Please select a start and end date for the maintenance period.');
+
+            if (!selectedStartDate) {
+                // alert('Please select a start date');
                 return;
             }
+
+            if (!selectedEndDate) {
+                // alert('Please select an end date');
+                return;
+            }
+
             if (!description) {
-                alert('Please enter a description for the maintenance.');
+                // alert('Please enter a description');
                 return;
             }
-            
-            // Ensure start date is before end date
-            const startDate = selectedStartDate.toISOString().split('T')[0];
-            const endDate = selectedEndDate.toISOString().split('T')[0];
 
             maintenanceRecords.push({
-                startDate: startDate,
-                endDate: endDate,
-                description: description,
-                addedOn: new Date().toLocaleDateString('en-GB')
+                startDate: selectedStartDate,
+                endDate: selectedEndDate,
+                description,
+                addedOn: new Date().toLocaleString()
             });
+
+            document.getElementById('maintenanceDescription').value = '';
+            selectedStartDate = null;
+            selectedEndDate = null;
             
-            // Sort by start date
-            maintenanceRecords.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
-            
-            // Clear inputs and re-render
-            resetCalendar();
+            renderMaintenanceCalendar();
             renderMaintenanceList();
-            // alert('Maintenance added successfully!');
+            // alert('Maintenance scheduled successfully!');
         }
 
         function renderMaintenanceList() {
-            const listEl = document.getElementById('maintenanceList');
-            const now = new Date();
+            const list = document.getElementById('maintenanceList');
             
             if (maintenanceRecords.length === 0) {
-                listEl.innerHTML = '<p style="color: #666; padding: 10px; text-align: center; border: 1px dashed #eee; border-radius: 8px;">No scheduled maintenance records.</p>';
+                list.innerHTML = '<p style="text-align: center; color: #999;">No maintenance scheduled</p>';
                 return;
             }
-            
-            listEl.innerHTML = maintenanceRecords.map((record, index) => {
+
+            const sortedRecords = [...maintenanceRecords].sort((a, b) => 
+                new Date(a.startDate) - new Date(b.startDate)
+            );
+
+            list.innerHTML = sortedRecords.map((record, index) => {
                 const startDate = new Date(record.startDate).toLocaleDateString('en-GB');
                 const endDate = new Date(record.endDate).toLocaleDateString('en-GB');
+                const isPast = new Date(record.endDate) < new Date();
                 
-                const end = new Date(record.endDate);
-                const endOfDay = new Date(end.getFullYear(), end.getMonth(), end.getDate(), 23, 59, 59);
-                const isPast = endOfDay < now;
-
                 return `
                     <div style="background: ${isPast ? '#f0f0f0' : '#fff3e0'}; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid ${isPast ? '#999' : '#c94a4a'};">
                         <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
                             <div>
-                                <strong style="color: ${isPast ? '#666' : '#c94a4a'};">
-                                    ${startDate} - ${endDate}
-                                </strong>
+                                <strong style="color: ${isPast ? '#666' : '#c94a4a'};">${startDate} - ${endDate}</strong>
                                 ${isPast ? '<span style="color: #999; margin-left: 10px; font-size: 0.9em;">(Past)</span>' : ''}
                             </div>
                             <button onclick="deleteMaintenance(${index})" style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 0.85em;">Delete</button>
@@ -1847,167 +2445,9 @@
             if (confirm('Are you sure you want to delete this maintenance record?')) {
                 maintenanceRecords.splice(index, 1);
                 renderMaintenanceList();
-                renderMaintenanceCalendar(); // Update calendar markers
             }
         }
-        
-        // Test Data Generation (for demonstration)
-        function generateTestData() {
-            experimentLogs = [
-                {
-                    type: 'NXCT',
-                    timestamp: new Date().toLocaleString(),
-                    data: {
-                        appNumber: 'NXCT-0001',
-                        dateReceived: '01/03/2024',
-                        fullName: 'Dr. Alice Smith',
-                        organisation: 'Imperial College',
-                        email: 'a.smith@ic.ac.uk',
-                        projectTitle: 'Microstructure of Advanced Composites',
-                        projectDescription: 'High-resolution tomography to quantify fiber-matrix distribution in aerospace materials.',
-                        subjectSector: 'Engineering',
-                        typeOfWork: 'Research',
-                        freeBeamtime: 'Yes',
-                        daysNeeded: '5',
-                        equipment: 'Microscope',
-                        previousExperience: 'Extensive',
-                        numSamples: '10',
-                        sampleComposition: 'Carbon/Epoxy Composite',
-                        sampleDimensions: '10x10x10mm',
-                        hazardous: 'No',
-                        samplesReady: 'Yes',
-                        readyDate: '01/04/2024',
-                        featureSize: '5-50 microns',
-                        scanningArea: 'Region of Interest',
-                        analysisHelp: 'Yes',
-                        analysisDetails: 'Segmentation and volume fraction analysis required.',
-                        additionalNotes: 'Urgent project for industry partner.',
-                        status: 'Samples Received',
-                        completionDate: '20/05/2024',
-                        actualDays: '6',
-                        dataSize: '1200',
-                        analysisTime: '40',
-                        dataDeleted: 'No',
-                        statusLog: [
-                            { status: 'Acknowledged', date: '01/03/2024, 10:00:00' },
-                            { status: 'Samples Received', date: '05/04/2024, 14:30:00' }
-                        ]
-                    }
-                },
-                {
-                    type: 'Internal',
-                    timestamp: new Date().toLocaleString(),
-                    data: {
-                        internalNumber: '0001',
-                        dateReceived: '10/01/2024',
-                        title: 'New Detector Calibration',
-                        lead: 'Prof. John Doe',
-                        organisation: 'University College London',
-                        email: 'j.doe@ucl.ac.uk',
-                        system: 'Large Field of View',
-                        expectedDays: '2',
-                        beamtime: 'Free',
-                        notes: 'Routine calibration check after software upgrade.',
-                        status: 'Scan Complete',
-                        completionDate: '12/01/2024',
-                        actualDays: '1.5',
-                        dataSize: '50',
-                        analysisTime: '2',
-                        dataDeleted: 'Yes',
-                        statusLog: [
-                            { status: 'Acknowledged', date: '10/01/2024, 09:00:00' },
-                            { status: 'Scanning', date: '11/01/2024, 11:00:00' },
-                            { status: 'Scan Complete', date: '12/01/2024, 17:00:00' }
-                        ]
-                    }
-                },
-                {
-                    type: 'NXCT',
-                    timestamp: new Date().toLocaleString(),
-                    data: {
-                        appNumber: 'NXCT-0002',
-                        dateReceived: '15/05/2024',
-                        fullName: 'Ms. Clara Jones',
-                        organisation: 'SME Innovate Ltd',
-                        email: 'c.jones@innovate.com',
-                        projectTitle: 'Porosity Analysis of 3D-Printed Medical Implants',
-                        projectDescription: 'Assessment of internal pore structure for quality control of titanium implants.',
-                        subjectSector: 'Medical',
-                        typeOfWork: 'Commercial',
-                        freeBeamtime: 'No',
-                        daysNeeded: '3',
-                        equipment: 'Medium Field of View',
-                        previousExperience: 'Limited',
-                        numSamples: '5',
-                        sampleComposition: 'Titanium Alloy',
-                        sampleDimensions: 'Rings, 5cm diameter',
-                        hazardous: 'No',
-                        samplesReady: 'No',
-                        readyDate: '01/07/2024',
-                        featureSize: '100-500 microns',
-                        scanningArea: 'Whole Sample',
-                        analysisHelp: 'Not sure',
-                        analysisDetails: 'Need guidance on using Avizo for porosity quantification.',
-                        additionalNotes: '',
-                        status: 'Acknowledged',
-                        completionDate: '',
-                        actualDays: '',
-                        dataSize: '',
-                        analysisTime: '',
-                        dataDeleted: 'No',
-                        statusLog: [
-                            { status: 'Acknowledged', date: '15/05/2024, 11:00:00' }
-                        ]
-                    }
-                },
-                {
-                    type: 'Internal',
-                    timestamp: new Date().toLocaleString(),
-                    data: {
-                        internalNumber: '0002',
-                        dateReceived: '01/06/2024',
-                        title: 'PhD Student Initial Scans (Water Transport)',
-                        lead: 'Anya Sharma (PhD)',
-                        organisation: 'University College London',
-                        email: 'a.sharma@ucl.ac.uk',
-                        system: 'Microscope',
-                        expectedDays: '5',
-                        beamtime: 'Free',
-                        notes: 'First set of scans for water transport in rock samples. Requires high contrast.',
-                        status: 'Data Transferred',
-                        completionDate: '07/06/2024',
-                        actualDays: '5',
-                        dataSize: '950',
-                        analysisTime: '10',
-                        dataDeleted: 'No',
-                        statusLog: [
-                            { status: 'Acknowledged', date: '01/06/2024, 12:00:00' },
-                            { status: 'Samples Received', date: '03/06/2024, 10:00:00' },
-                            { status: 'Scanning', date: '03/06/2024, 14:00:00' },
-                            { status: 'Scan Complete', date: '06/06/2024, 18:00:00' },
-                            { status: 'Data Transferred', date: '07/06/2024, 09:00:00' }
-                        ]
-                    }
-                }
-            ];
-            
-            maintenanceRecords = [
-                { startDate: '2025-10-01', endDate: '2025-10-02', description: 'Annual system software update and patch installation.', addedOn: '01/09/2025' },
-                { startDate: '2024-01-20', endDate: '2024-01-25', description: 'Major system upgrade and tube replacement (past event).', addedOn: '01/12/2023' }
-            ];
-
-            initializeInternalCounter();
-            renderLogs();
-            // alert('Test data generated successfully!');
-        }
-
-        // Initialize on load
-        document.addEventListener('DOMContentLoaded', () => {
-            renderLogs();
-            document.getElementById('viewToggle').classList.add('active');
-            initializeInternalCounter();
-        });
-        
     </script>
 </body>
+
 </html>
