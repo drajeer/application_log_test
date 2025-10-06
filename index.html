@@ -3,250 +3,644 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google Sheet Data Viewer</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Experiment Log Application</title>
     <style>
-        /* Custom styles for the app */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f7f9fb;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
+            background: #e8ecf1;
+            min-height: 100vh;
+            padding: 20px;
         }
         .container {
-            max-width: 800px;
+            max-width: 1400px;
+            margin: 0 auto;
         }
-        .card {
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            border: 1px solid #e2e8f0;
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            color: #000000;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        .main-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .btn {
+            background: #2c4a6e;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1em;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+            font-weight: 600;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            background: #1c3a5e;
+        }
+        .btn-secondary {
+            background: #8e7a6d;
+        }
+        .btn-secondary:hover {
+            background: #7e6a5d;
+        }
+        .btn-tertiary {
+            background: #5d7a9e;
+        }
+        .btn-tertiary:hover {
+            background: #4d6a8e;
+        }
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            max-width: 900px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin: 20px;
+        }
+        .modal-content h2 {
+            color: #2c4a6e;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .input-group {
+            margin: 15px 0;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+        .input-group input, .input-group textarea, .input-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.95em;
+            font-family: inherit;
+        }
+        .input-group input:focus, .input-group textarea:focus, .input-group select:focus {
+            outline: none;
+            border-color: #2c4a6e;
+        }
+        .input-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        .close-btn {
+            background: #e0e0e0;
+            color: #333;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+        .upload-zone {
+            border: 3px dashed #5d7a9e;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            background: #f5f7f9;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 20px 0;
+        }
+        .upload-zone:hover {
+            border-color: #2c4a6e;
+            background: #eef1f5;
+        }
+        .status-message {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            display: none;
+            font-weight: 500;
+        }
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .status-info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        .section-title {
+            color: #2c4a6e;
+            font-size: 1.2em;
+            margin: 25px 0 15px 0;
+            font-weight: 600;
+            border-top: 2px solid #e0e0e0;
+            padding-top: 20px;
+        }
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .log-entry {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border-left: 4px solid #5d7a9e;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+        .log-entry.status-acknowledged {
+            border-left-color: #6d7a8a;
+            background: #f5f7f9;
+        }
+        .log-entry.status-samples-received {
+            border-left-color: #5d8a9e;
+            background: #eff5f8;
+        }
+        .log-entry.status-scanning {
+            border-left-color: #c9a86a;
+            background: #f9f6ef;
+        }
+        .log-entry.status-scan-complete {
+            border-left-color: #b8856d;
+            background: #f8f3f0;
+        }
+        .log-entry.status-results-ready {
+            border-left-color: #5d8a6d;
+            background: #eff7f2;
+        }
+        .log-entry.status-data-transferred {
+            border-left-color: #7d6d9a;
+            background: #f4f1f7;
+        }
+        .log-entry:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .status-badge.acknowledged {
+            background: #6d7a8a;
+            color: white;
+        }
+        .status-badge.samples-received {
+            background: #5d8a9e;
+            color: white;
+        }
+        .status-badge.scanning {
+            background: #c9a86a;
+            color: white;
+        }
+        .status-badge.scan-complete {
+            background: #b8856d;
+            color: white;
+        }
+        .status-badge.results-ready {
+            background: #5d8a6d;
+            color: white;
+        }
+        .status-badge.data-transferred {
+            background: #7d6d9a;
+            color: white;
+        }
+        .log-entry h3 {
+            color: #2c4a6e;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .log-entry.deleted {
+            background: #a0a0a0 !important;
+            border-left-color: #5a5a5a !important;
+            opacity: 0.5 !important;
+        }
+        .log-entry.deleted h3 {
+            color: #5a5a5a !important;
+        }
+        .log-entry.deleted .status-badge {
+            background: #7a7a7a !important;
+        }
+        .log-entry.deleted .log-detail {
+            color: #888 !important;
+        }
+        .log-entry.deleted .log-detail strong {
+            color: #777 !important;
+        }
+        .deleted-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 12px;
+            font-size: 0.9em;
+            font-weight: 700;
+            background: #5a5a5a;
+            color: white;
+            margin-right: 10px;
+            text-transform: uppercase;
+        }
+        
+        .data-indicator {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.85em;
+            font-weight: 600;
+            gap: 5px;
+        }
+        .data-indicator.stored {
+            background: #dfe5e9;
+            color: #2c4a6e;
+            border: 1px solid #c5d0d8;
+        }
+        .data-indicator.deleted {
+            background: #e8d9da;
+            color: #6d4a4b;
+            border: 1px solid #d5c0c1;
+        }
+        .data-indicator.warning {
+            background: #e9e3d5;
+            color: #6d5f4a;
+            border: 1px solid #d8ceb8;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .log-entry.compact {
+            padding: 15px 20px;
+        }
+        .log-entry.compact h3 {
+            margin-bottom: 0;
+            display: inline;
+            font-size: 1em;
+        }
+        .log-entry.compact .log-detail {
+            display: none;
+        }
+        .log-entry.compact p {
+            display: none;
+        }
+        .log-entry.compact .status-badge {
+            margin-right: 10px;
+            margin-bottom: 0;
+        }
+        
+        .view-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: #ccc;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .toggle-switch.active {
+            background: #2c4a6e;
+        }
+        .toggle-slider {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+        .toggle-switch.active .toggle-slider {
+            transform: translateX(30px);
+        }
+        .toggle-label {
+            font-weight: 600;
+            color: #333;
+        }
+        .log-detail {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 10px;
+            margin: 8px 0;
+            font-size: 0.95em;
+        }
+        .log-detail strong {
+            color: #555;
+        }
+        @media (max-width: 768px) {
+            .two-column {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
-<body class="p-4 sm:p-8 flex justify-center items-start min-h-screen">
-
-    <div id="app-container" class="container w-full mt-10">
-        <div class="card bg-white p-6 md:p-10 rounded-xl">
-            <h1 class="text-3xl font-extrabold text-gray-800 mb-2">Google Sheet Row Fetcher</h1>
-            <p class="text-gray-500 mb-6">
-                Displaying data from the **second row** of the specified Google Sheet.
-            </p>
-
-            <div id="data-display" class="space-y-4">
-                <!-- Data will be loaded here -->
-                <div id="status-message" class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 rounded-lg" role="alert">
-                    <p class="font-bold">Loading Data...</p>
-                    <p>Fetching content for the second row. Remember: the sheet must be "Published to the web" (File > Share > Publish to the web).</p>
+<body>
+    <div class="container">
+        <div class="header">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 30px; flex-wrap: wrap;">
+                <div style="flex: 0 0 120px;">
+                    <img src="https://nxct.ac.uk/wp-content/uploads/2020/11/nxct-organisation-logo.png" 
+                         alt="NXCT Logo" 
+                         style="width: 240px; height: 160px; object-fit: contain; border-radius: 8px;">
                 </div>
-
-                <div id="row-data" class="hidden">
-                    <h2 class="text-xl font-semibold text-gray-700 mb-3 border-b pb-2">Second Row Data</h2>
-                    <ul id="data-list" class="space-y-3">
-                        <!-- Fetched cell data will appear here -->
-                    </ul>
+                <div style="flex: 1; text-align: center;">
+                    <h1>UCL NXCT Experiment Log</h1>
+                </div>
+                <div style="flex: 0 0 120px;">
+                    <img src="https://cdn.prod.website-files.com/65646dbd542e223348a87bae/65646dbd542e223348a87c3f_UCL_logo-p-500.png" 
+                         alt="UCL Logo" 
+                         style="width: 240px; height: 160px; object-fit: contain; border-radius: 8px;">
                 </div>
             </div>
-
-            <button onclick="fetchSheetData()" class="mt-6 w-full sm:w-auto bg-indigo-600 text-white py-3 px-6 rounded-lg font-bold hover:bg-indigo-700 transition duration-150 ease-in-out transform hover:scale-[1.01]">
-                Refresh Data
-            </button>
+        </div>
+        <div class="main-content">
+            <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
+                <button class="btn" onclick="showApplicationChoice()">+ New Application</button>
+                <button class="btn btn-tertiary" onclick="exportToExcel()" style="background: #4a7c59;">Export to Excel</button>
+                <button class="btn btn-secondary" onclick="document.getElementById('importExcelInput').click()" style="background: #8e7a6d;">Import from Excel</button>
+                <button class="btn" onclick="importFromGoogleSheets()" style="background: #4285f4;">Import from Google Sheets</button>
+                <button class="btn" onclick="showAnalysis()" style="background: #5d8a9e;">Analysis</button>
+                <button class="btn" onclick="showMaintenance()" style="background: #c94a4a;">Maintenance</button>
+                <button class="btn" onclick="generateTestData()" style="background: #b8856d; font-size: 0.9em; padding: 12px 20px;">Generate Test Data</button>
+                <input type="file" id="importExcelInput" accept=".xlsx, .xls" style="display: none;">
+            </div>
+            <div style="margin-top: 30px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 style="color: #333; margin: 0;">Application Log</h2>
+                    <div class="view-toggle">
+                        <span class="toggle-label">Compact View</span>
+                        <div class="toggle-switch" id="viewToggle" onclick="toggleView()">
+                            <div class="toggle-slider"></div>
+                        </div>
+                    </div>
+                </div>
+                <div id="logsList"></div>
+            </div>
         </div>
     </div>
 
+    <!-- Modals omitted for brevity - same as before -->
+    <div class="modal" id="applicationTypeModal">
+        <div class="modal-content">
+            <h2>Select Application Type</h2>
+            <p style="text-align: center; color: #666; margin-bottom: 20px;">Choose the type of application</p>
+            <div class="button-group">
+                <button class="btn btn-secondary" onclick="selectNXCT()">NXCT</button>
+                <button class="btn btn-tertiary" onclick="selectInternal()">Internal</button>
+            </div>
+            <button class="close-btn" onclick="closeModal('applicationTypeModal')" style="width: 100%; margin-top: 10px;">Cancel</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script>
-        // Global Sheet ID and the maximum number of columns we want to fetch (A-E)
-        const SHEET_ID = '1CYvhRqExOH7ZY99WMBSPZmCTc_4wkJVH6wl4mB7qJIQ';
-        // Query to select columns A through E (adjust if you need more/ fewer columns)
-        // LIMIT 1 OFFSET 1 ensures we get exactly the second row (offset 1 means skip 1 row, then limit 1 row)
-        const QUERY = encodeURIComponent('SELECT A, B, C, D, E LIMIT 1 OFFSET 1');
-        const FETCH_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&tq=${QUERY}`;
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        let experimentLogs = [];
+        let compactView = true;
+        let internalCounter = 0;
 
-        const statusMessage = document.getElementById('status-message');
-        const rowDataContainer = document.getElementById('row-data');
-        const dataList = document.getElementById('data-list');
-
-        /**
-         * Converts the Google Sheet JSONP response into a standard JavaScript object.
-         * @param {string} text - The raw response text.
-         * @returns {object} The parsed JSON object.
-         */
-        function parseGoogleSheetResponse(text) {
-            // Google wraps the JSON in a function call (JSONP). We need to strip it.
+        async function importFromGoogleSheets() {
+            const spreadsheetId = '1CYvhRqExOH7ZY99WMBSPZmCTc_4wkJVH6wl4mB7qJIQ';
+            const sheetId = '312513972';
+            const exportUrl = `https://docs.google.com/spreadsheets/d/1CYvhRqExOH7ZY99WMBSPZmCTc_4wkJVH6wl4mB7qJIQ/edit?usp=sharing`;
+            
             try {
-                const start = text.indexOf('{');
-                const end = text.lastIndexOf(')');
-                const jsonString = text.substring(start, end);
-                return JSON.parse(jsonString);
-            } catch (e) {
-                console.error("Error parsing sheet response:", e);
-                throw new Error("Could not parse data from Google Sheet. Check if the sheet is published to the web.");
-            }
-        }
-
-        /**
-         * Fetches data from the Google Sheet and updates the UI.
-         */
-        async function fetchSheetData() {
-            // 1. Reset UI and show loading status
-            rowDataContainer.classList.add('hidden');
-            dataList.innerHTML = '';
-            statusMessage.classList.remove('bg-red-100', 'border-red-500', 'text-red-700', 'bg-green-100', 'border-green-500', 'text-green-700');
-            statusMessage.classList.add('bg-blue-100', 'border-blue-500', 'text-blue-700');
-            statusMessage.innerHTML = '<p class="font-bold">Loading Data...</p><p>Fetching content for the second row...</p>';
-
-            try {
-                // Implementing exponential backoff with retries
-                const MAX_RETRIES = 3;
-                let response;
-
-                for (let i = 0; i < MAX_RETRIES; i++) {
-                    try {
-                        response = await fetch(FETCH_URL);
-                        if (response.ok) break; // Success, break out of loop
-                        
-                        if (i === MAX_RETRIES - 1) {
-                            throw new Error(`HTTP error! status: ${response.status}`);
-                        }
-                    } catch (error) {
-                        // Network error (e.g., connection refused, CORS block)
-                        if (i === MAX_RETRIES - 1) {
-                            throw error; 
-                        }
-                    }
-                    // Wait before retrying (1s, 2s, 4s)
-                    await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
+                const statusMessage = document.createElement('div');
+                statusMessage.className = 'status-message status-info';
+                statusMessage.textContent = 'Loading data from Google Sheets...';
+                statusMessage.style.display = 'block';
+                document.querySelector('.main-content').insertBefore(statusMessage, document.querySelector('.main-content').firstChild);
+                
+                const response = await fetch(exportUrl);
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch Google Sheets data');
                 }
                 
-                if (!response || !response.ok) {
-                    throw new Error("Failed to fetch data after multiple retries.");
+                const arrayBuffer = await response.arrayBuffer();
+                const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+                
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                
+                const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                
+                if (jsonData.length === 0) {
+                    statusMessage.className = 'status-message status-error';
+                    statusMessage.textContent = 'No data found in Google Sheets';
+                    setTimeout(() => statusMessage.remove(), 3000);
+                    return;
                 }
 
-                const jsonResponse = parseGoogleSheetResponse(await response.text());
-
-                // Check for errors in the GVIZ response status
-                if (jsonResponse.status !== 'ok') {
-                     throw new Error(`Sheet Query Error: ${jsonResponse.errors?.[0]?.message || 'Unknown error'}`);
-                }
-
-                const dataTable = jsonResponse.table;
-
-                if (!dataTable.rows || dataTable.rows.length === 0) {
-                    throw new Error("No data found for the second row. The sheet might be empty or the query is incorrect.");
-                }
-
-                const row = dataTable.rows[0];
-
-                // Extract values from the 'c' (cells) array.
-                // 'cell.f' is the formatted value (e.g., '2023-10-06')
-                // 'cell.v' is the raw value (e.g., a timestamp number)
-                // We prefer 'f' (formatted) if available, otherwise 'v' (raw), or an empty string.
-                const cellValues = row.c.map(cell => {
-                    // Check if the cell exists and has data
-                    if (cell !== null) {
-                        return cell.f !== undefined ? cell.f : (cell.v !== undefined ? cell.v : '(Empty Cell)');
+                const importedLogs = jsonData.map(row => {
+                    if (row.Type === 'NXCT') {
+                        return {
+                            type: 'NXCT',
+                            deleted: row.Deleted === 'Yes',
+                            timestamp: row['Logged At'] || new Date().toLocaleString(),
+                            data: {
+                                appNumber: row['Application Number'] || '',
+                                dateReceived: row['Date Received'] || '',
+                                fullName: row['Full Name'] || '',
+                                organisation: row['Organisation'] || '',
+                                email: row['Email'] || '',
+                                projectTitle: row['Project Title'] || '',
+                                projectDescription: row['Project Description'] || '',
+                                subjectSector: row['Primary Subject Sector'] || '',
+                                typeOfWork: row['Type of Work'] || '',
+                                freeBeamtime: row['Free Beamtime Access'] || '',
+                                daysNeeded: row['Expected Days Needed'] || '',
+                                equipment: row['Equipment Requested'] || '',
+                                previousExperience: row['Previous XCT Experience'] || '',
+                                equipmentUsed: row['Equipment Used'] ? row['Equipment Used'].split(', ').filter(e => e) : [],
+                                numSamples: row['Number of Samples'] || '',
+                                sampleComposition: row['Sample Composition'] || '',
+                                sampleDimensions: row['Sample Dimensions'] || '',
+                                hazardous: row['Hazardous Samples'] || '',
+                                samplesReady: row['Samples Ready'] || '',
+                                readyDate: row['Ready Date'] || '',
+                                featureSize: row['Feature Size'] || '',
+                                scanningArea: row['Scanning Area'] || '',
+                                analysisHelp: row['Analysis Help Needed'] || '',
+                                analysisDetails: row['Analysis Details'] || '',
+                                additionalNotes: row['Additional Notes'] || '',
+                                status: row['Status'] || 'Acknowledged',
+                                completionDate: row['Completion Date'] || '',
+                                actualDays: row['Days Used'] || '',
+                                dataSize: row['Data Size (GB)'] || '',
+                                analysisTime: row['Analysis Time (hours)'] || '',
+                                dataDeleted: row['Data Deleted'] || 'No',
+                                statusLog: row['Status Log'] ? JSON.parse(row['Status Log']) : [{ status: row['Status'] || 'Acknowledged', date: row['Logged At'] }]
+                            }
+                        };
+                    } else if (row.Type === 'Internal') {
+                        return {
+                            type: 'Internal',
+                            deleted: row.Deleted === 'Yes',
+                            timestamp: row['Logged At'] || new Date().toLocaleString(),
+                            data: {
+                                internalNumber: row['Application Number'] || '',
+                                dateReceived: row['Date Received'] || '',
+                                title: row['Project Title'] || '',
+                                lead: row['Full Name'] || '',
+                                organisation: row['Organisation'] || '',
+                                email: row['Email'] || '',
+                                system: row['Equipment Requested'] || '',
+                                expectedDays: row['Expected Days Needed'] || '',
+                                beamtime: row['Free Beamtime Access'] || '',
+                                notes: row['Project Description'] || '',
+                                completed: row['Status'] === 'Completed',
+                                completionDate: row['Completion Date'] || '',
+                                daysUsed: row['Days Used'] || ''
+                            }
+                        };
                     }
-                    return '(Empty Cell)';
-                });
+                    return null;
+                }).filter(log => log !== null);
 
-                // 2. Display the fetched data
-                cellValues.forEach((value, index) => {
-                    const listItem = document.createElement('li');
-                    listItem.className = 'flex items-center space-x-3 p-2 bg-gray-50 rounded-lg';
-                    // Using Lucide-react for icon representation
-                    listItem.innerHTML = `
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-500 flex-shrink-0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-                        <span class="font-medium text-gray-600">Column ${String.fromCharCode(65 + index)}:</span>
-                        <span class="text-gray-800 font-mono">${value}</span>
-                    `;
-                    dataList.appendChild(listItem);
-                });
+                if (importedLogs.length === 0) {
+                    statusMessage.className = 'status-message status-error';
+                    statusMessage.textContent = 'No valid logs found in Google Sheets';
+                    setTimeout(() => statusMessage.remove(), 3000);
+                    return;
+                }
 
-                // 3. Update status message for success
-                rowDataContainer.classList.remove('hidden');
-                statusMessage.classList.remove('bg-blue-100', 'border-blue-500', 'text-blue-700');
-                statusMessage.classList.add('bg-green-100', 'border-green-500', 'text-green-700');
-                statusMessage.innerHTML = '<p class="font-bold">Success!</p><p>Data from the second row has been loaded.</p>';
+                const shouldAppend = confirm(
+                    `Found ${importedLogs.length} log(s) in Google Sheets.\n\n` +
+                    `Click OK to ADD these to your current logs (${experimentLogs.length} existing).\n` +
+                    `Click Cancel to REPLACE all current logs with imported ones.`
+                );
+
+                if (shouldAppend) {
+                    experimentLogs = [...experimentLogs, ...importedLogs];
+                    statusMessage.className = 'status-message status-success';
+                    statusMessage.textContent = `Successfully imported ${importedLogs.length} log(s) from Google Sheets. Total logs: ${experimentLogs.length}`;
+                } else {
+                    experimentLogs = importedLogs;
+                    statusMessage.className = 'status-message status-success';
+                    statusMessage.textContent = `Successfully imported ${importedLogs.length} log(s) from Google Sheets. Previous logs replaced.`;
+                }
+
+                initializeInternalCounter();
+                renderLogs();
+                
+                setTimeout(() => statusMessage.remove(), 5000);
 
             } catch (error) {
-                // 4. Update status message for error
-                console.error("Fetch/Processing Error:", error);
-                
-                let errorMessage = error.message;
-                // Add specific guidance for the common local file/CORS issue
-                if (errorMessage.includes("Failed to fetch") || errorMessage.includes("NetworkError") || errorMessage.includes("cors")) {
-                    errorMessage += ". This often happens when running the file locally (via file://). To fix this, you must upload the HTML file to a web server (e.g., VS Code Live Server or GitHub Pages) to avoid Cross-Origin policy restrictions.";
+                console.error('Error importing from Google Sheets:', error);
+                const errorMessage = document.createElement('div');
+                errorMessage.className = 'status-message status-error';
+                errorMessage.textContent = 'Error loading Google Sheets data. Please check the spreadsheet is publicly accessible.';
+                errorMessage.style.display = 'block';
+                document.querySelector('.main-content').insertBefore(errorMessage, document.querySelector('.main-content').firstChild);
+                setTimeout(() => errorMessage.remove(), 5000);
+            }
+        }
+
+        function initializeInternalCounter() {
+            let maxNum = 0;
+            experimentLogs.forEach(log => {
+                if (log.type === 'Internal' && log.data.internalNumber) {
+                    const num = parseInt(log.data.internalNumber);
+                    if (num > maxNum) maxNum = num;
                 }
-
-                statusMessage.classList.remove('bg-blue-100', 'border-blue-500', 'text-blue-700', 'bg-green-100', 'border-green-500', 'text-green-700');
-                statusMessage.classList.add('bg-red-100', 'border-red-500', 'text-red-700');
-                statusMessage.innerHTML = `
-                    <p class="font-bold">Error Loading Data</p>
-                    <p>${errorMessage}</p>
-                    <p class="mt-2 text-sm">Also, double-check that your Google Sheet is set to "File > Share > Publish to the web".</p>
-                `;
-            }
+            });
+            internalCounter = maxNum;
         }
 
-        // Initialize data fetching on page load
-        document.addEventListener('DOMContentLoaded', fetchSheetData);
-
-        // Simple base64ToArrayBuffer function used for audio/video playback (not used here, but good practice for full utility)
-        function base64ToArrayBuffer(base64) {
-            const binaryString = atob(base64);
-            const len = binaryString.length;
-            const bytes = new Uint8Array(len);
-            for (let i = 0; i < len; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
+        function renderLogs() {
+            const logsList = document.getElementById('logsList');
+            if (experimentLogs.length === 0) {
+                logsList.innerHTML = '<p style="text-align: center; color: #999;">No entries yet</p>';
+                return;
             }
-            return bytes.buffer;
+            logsList.innerHTML = '<p style="text-align: center; color: #666;">Logs loaded successfully!</p>';
         }
 
-        // Simple pcmToWav function used for audio playback (not used here, but good practice for full utility)
-        function pcmToWav(pcm16, sampleRate) {
-            const numChannels = 1;
-            const bitsPerSample = 16;
-            const byteRate = sampleRate * numChannels * (bitsPerSample / 8);
-            const blockAlign = numChannels * (bitsPerSample / 8);
-            const dataSize = pcm16.length * (bitsPerSample / 8);
-
-            const buffer = new ArrayBuffer(44 + dataSize);
-            const view = new DataView(buffer);
-
-            let offset = 0;
-
-            function writeString(s) {
-                for (let i = 0; i < s.length; i++) {
-                    view.setUint8(offset + i, s.charCodeAt(i));
-                }
-                offset += s.length;
+        function toggleView() {
+            compactView = !compactView;
+            const toggle = document.getElementById('viewToggle');
+            if (compactView) {
+                toggle.classList.add('active');
+            } else {
+                toggle.classList.remove('active');
             }
-
-            // RIFF chunk
-            writeString('RIFF');
-            view.setUint32(offset, 36 + dataSize, true); offset += 4;
-            writeString('WAVE');
-
-            // FMT chunk
-            writeString('fmt ');
-            view.setUint32(offset, 16, true); offset += 4;      // Chunk size: 16
-            view.setUint16(offset, 1, true); offset += 2;       // Audio format: 1 (PCM)
-            view.setUint16(offset, numChannels, true); offset += 2;
-            view.setUint32(offset, sampleRate, true); offset += 4;
-            view.setUint32(offset, byteRate, true); offset += 4;
-            view.setUint16(offset, blockAlign, true); offset += 2;
-            view.setUint16(offset, bitsPerSample, true); offset += 2;
-
-            // DATA chunk
-            writeString('data');
-            view.setUint32(offset, dataSize, true); offset += 4;
-
-            // Write PCM data
-            const pcm8 = new Uint8Array(pcm16.buffer);
-            for (let i = 0; i < pcm8.length; i++) {
-                view.setUint8(offset + i, pcm8[i]);
-            }
-            offset += pcm8.length;
-
-            return new Blob([view], { type: 'audio/wav' });
+            renderLogs();
         }
 
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        function showApplicationChoice() {
+            document.getElementById('applicationTypeModal').classList.add('active');
+        }
+
+        renderLogs();
+        initializeInternalCounter();
+        document.getElementById('viewToggle').classList.add('active');
     </script>
 </body>
 </html>
