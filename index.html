@@ -936,7 +936,7 @@
             document.getElementById('cancelUploadBtn').style.display = 'block';
             
             closeModal('nxctModal');
-            // alert('NXCT Application saved successfully!');
+            // // alert('NXCT Application saved successfully!');
         }
 
         function saveNXCTApplicationSilent() {
@@ -989,17 +989,17 @@
             const notes = document.getElementById('internalNotes').value.trim();
             
             if (!title) {
-                alert('Please enter a title');
+                // alert('Please enter a title');
                 return;
             }
             
             if (!lead) {
-                alert('Please enter experiment lead name');
+                // alert('Please enter experiment lead name');
                 return;
             }
             
             if (!email) {
-                alert('Please enter email address');
+                // alert('Please enter email address');
                 return;
             }
             
@@ -1037,7 +1037,7 @@
             beamtimeToggle.classList.remove('active');
             document.getElementById('internalNotes').value = '';
             
-            // alert('Internal application saved successfully!');
+            // // alert('Internal application saved successfully!');
         }
 
         function toggleView() {
@@ -1403,7 +1403,7 @@
             
             if (newValue > 3) {
                 if (!daysField || !daysField.value.trim()) {
-                    alert('⚠️ Days Used is required before moving past Scan Complete!');
+                    // alert('⚠️ Days Used is required before moving past Scan Complete!');
                     slider.value = Math.min(lastValid, 3);
                     updateStatusLabel(slider.value);
                     if (daysField) {
@@ -1421,7 +1421,7 @@
                 const other = document.getElementById('equipOther')?.checked;
                 
                 if (!microscope && !largeFOV && !mediumFOV && !other) {
-                    alert('⚠️ Please select at least one equipment type used before moving past Scan Complete!');
+                    // alert('⚠️ Please select at least one equipment type used before moving past Scan Complete!');
                     slider.value = Math.min(lastValid, 3);
                     updateStatusLabel(slider.value);
                     if (equipmentGroup) {
@@ -1496,7 +1496,7 @@
                 }
                 
                 if (missingFields.length > 0) {
-                    alert('⚠️ ' + missingFields.join(' and ') + ' required before moving to Data Transferred!');
+                    // alert('⚠️ ' + missingFields.join(' and ') + ' required before moving to Data Transferred!');
                     slider.value = Math.min(lastValid, 4);
                     updateStatusLabel(slider.value);
                     
@@ -1578,7 +1578,7 @@
                 const currentStatusIndex = ['Acknowledged', 'Samples Received', 'Scanning', 'Scan Complete', 'Results Ready', 'Data Transferred'].indexOf(newStatus);
                 
                 if (currentStatusIndex >= scanCompleteIndex && !daysUsed) {
-                    alert('Days Used is required when status is Scan Complete or later!');
+                    // alert('Days Used is required when status is Scan Complete or later!');
                     document.getElementById('editActualDays').style.borderColor = '#dc3545';
                     document.getElementById('editActualDays').style.borderWidth = '3px';
                     document.getElementById('editActualDays').focus();
@@ -1592,7 +1592,7 @@
                     const other = document.getElementById('equipOther')?.checked;
                     
                     if (!microscope && !largeFOV && !mediumFOV && !other) {
-                        alert('Please select at least one equipment type used!');
+                        // alert('Please select at least one equipment type used!');
                         return;
                     }
                     
@@ -1609,14 +1609,14 @@
                 
                 if (currentStatusIndex >= resultsReadyIndex) {
                     if (!dataSize) {
-                        alert('Data Size (GB) is required when status is Results Ready or later!');
+                        // alert('Data Size (GB) is required when status is Results Ready or later!');
                         document.getElementById('editDataSize').style.borderColor = '#dc3545';
                         document.getElementById('editDataSize').style.borderWidth = '3px';
                         document.getElementById('editDataSize').focus();
                         return;
                     }
                     if (!analysisTime) {
-                        alert('Analysis Time (hours) is required when status is Results Ready or later!');
+                        // alert('Analysis Time (hours) is required when status is Results Ready or later!');
                         document.getElementById('editAnalysisTime').style.borderColor = '#dc3545';
                         document.getElementById('editAnalysisTime').style.borderWidth = '3px';
                         document.getElementById('editAnalysisTime').focus();
@@ -1644,7 +1644,7 @@
                 
                 renderLogs();
                 closeModal('viewDetailsModal');
-                alert('Tracking information saved successfully!');
+                // // alert('Tracking information saved successfully!');
             }
         }
 
@@ -1656,7 +1656,7 @@
                 const daysUsed = document.getElementById('internalDaysUsed').value.trim();
                 
                 if (completed && !daysUsed) {
-                    alert('⚠️ Days Used is required when marking as Completed!');
+                    // alert('⚠️ Days Used is required when marking as Completed!');
                     const daysField = document.getElementById('internalDaysUsed');
                     daysField.style.borderColor = '#dc3545';
                     daysField.style.borderWidth = '4px';
@@ -1671,7 +1671,7 @@
                 
                 renderLogs();
                 closeModal('viewDetailsModal');
-                alert('Tracking information saved successfully!');
+                // alert('Tracking information saved successfully!');
             }
         }
 
@@ -1679,7 +1679,7 @@
             const log = experimentLogs[index];
             
             if (!log) {
-                alert('Error: Application not found');
+                // alert('Error: Application not found');
                 return;
             }
             
@@ -1689,12 +1689,12 @@
             closeModal('viewDetailsModal');
             
             const action = log.deleted ? 'marked as DELETED' : 'RESTORED';
-            alert(`Application ${action}!`);
+            // alert(`Application ${action}!`);
         }
 
         function exportToExcel() {
             if (experimentLogs.length === 0) {
-                alert('No data to export. Please add some applications first.');
+                // alert('No data to export. Please add some applications first.');
                 return;
             }
 
@@ -1817,7 +1817,7 @@
                     const jsonData = XLSX.utils.sheet_to_json(worksheet);
                     
                     if (jsonData.length === 0) {
-                        alert('No data found in Excel file');
+                        // alert('No data found in Excel file');
                         return;
                     }
 
@@ -1888,7 +1888,7 @@
                     }).filter(log => log !== null);
 
                     if (importedLogs.length === 0) {
-                        alert('No valid logs found in Excel file');
+                        // alert('No valid logs found in Excel file');
                         return;
                     }
 
@@ -1900,10 +1900,10 @@
 
                     if (shouldAppend) {
                         experimentLogs = [...experimentLogs, ...importedLogs];
-                        alert(`Successfully imported ${importedLogs.length} log(s). Total logs: ${experimentLogs.length}`);
+                        // alert(`Successfully imported ${importedLogs.length} log(s). Total logs: ${experimentLogs.length}`);
                     } else {
                         experimentLogs = importedLogs;
-                        alert(`Successfully imported ${importedLogs.length} log(s). Previous logs replaced.`);
+                        // alert(`Successfully imported ${importedLogs.length} log(s). Previous logs replaced.`);
                     }
 
                     initializeInternalCounter();
@@ -1913,7 +1913,7 @@
 
                 } catch (error) {
                     console.error('Error importing Excel:', error);
-                    alert('Error importing Excel file. Please make sure it\'s a valid exported file.');
+                    // alert('Error importing Excel file. Please make sure it\'s a valid exported file.');
                 }
             };
 
@@ -2219,7 +2219,7 @@
             }
             
             renderLogs();
-            alert('Generated 20 random NXCT applications for testing!');
+            // alert('Generated 20 random NXCT applications for testing!');
         }
 
         function showMaintenance() {
@@ -2378,17 +2378,17 @@
             const description = document.getElementById('maintenanceDescription').value.trim();
 
             if (!selectedStartDate) {
-                alert('Please select a start date');
+                // alert('Please select a start date');
                 return;
             }
 
             if (!selectedEndDate) {
-                alert('Please select an end date');
+                // alert('Please select an end date');
                 return;
             }
 
             if (!description) {
-                alert('Please enter a description');
+                // alert('Please enter a description');
                 return;
             }
 
@@ -2405,7 +2405,7 @@
             
             renderMaintenanceCalendar();
             renderMaintenanceList();
-            alert('Maintenance scheduled successfully!');
+            // alert('Maintenance scheduled successfully!');
         }
 
         function renderMaintenanceList() {
@@ -2451,3 +2451,4 @@
 </body>
 
 </html>
+
