@@ -398,30 +398,30 @@
     <div class="container">
         <div class="header">
             <div style="display: flex; align-items: center; justify-content: space-between; gap: 30px; flex-wrap: wrap;">
-                <div style="flex: 0 0 120px;">
-                    <img src="https://nxct.ac.uk/wp-content/uploads/2020/11/nxct-organisation-logo.png" 
-                         alt="NXCT Logo" 
-                         style="width: 240px; height: 160px; object-fit: contain; border-radius: 8px;">
-                </div>
+<div style="flex: 0 0 120px;">
+    <img src="https://nxct.ac.uk/wp-content/uploads/2020/11/nxct-organisation-logo.png" 
+         alt="NXCT Logo" 
+         style="width: 240px; height: 160px; object-fit: contain; border-radius: 8px;">
+</div>
                 <div style="flex: 1; text-align: center;">
                     <h1>UCL NXCT Experiment Log</h1>
                 </div>
                 <div style="flex: 0 0 120px;">
-                    <img src="https://cdn.prod.website-files.com/65646dbd542e223348a87bae/65646dbd542e223348a87c3f_UCL_logo-p-500.png" 
-                         alt="UCL Logo" 
-                         style="width: 240px; height: 160px; object-fit: contain; border-radius: 8px;">
-                </div>
+    <img src="https://cdn.prod.website-files.com/65646dbd542e223348a87bae/65646dbd542e223348a87c3f_UCL_logo-p-500.png" 
+         alt="NXCT Organisation Logo" 
+         style="width: 240px; height: 160px; object-fit: contain; border-radius: 8px;">
+</div>
             </div>
         </div>
         <div class="main-content">
             <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
                 <button class="btn" onclick="showApplicationChoice()">+ New Application</button>
-                <button class="btn btn-tertiary" onclick="exportToExcel()" style="background: #4a7c59;">Export to Excel</button>
-                <button class="btn btn-secondary" onclick="document.getElementById('importExcelInput').click()" style="background: #8e7a6d;">Import from Excel</button>
-                <button class="btn" onclick="importFromGoogleSheets()" style="background: #4285f4;">Import from Google Sheets</button>
-                <button class="btn" onclick="showAnalysis()" style="background: #5d8a9e;">Analysis</button>
-                <button class="btn" onclick="showMaintenance()" style="background: #c94a4a;">Maintenance</button>
+                <button class="btn btn-tertiary" onclick="exportToExcel()" style="background: #4a7c59;">📊 Export to Excel</button>
+                <button class="btn btn-secondary" onclick="document.getElementById('importExcelInput').click()" style="background: #8e7a6d;">📥 Import from Excel</button>
+                <button class="btn" onclick="showAnalysis()" style="background: #5d8a9e;">📈 Analysis</button>
+                <button class="btn" onclick="showMaintenance()" style="background: #c94a4a;">🔧 Maintenance</button>
                 <button class="btn" onclick="generateTestData()" style="background: #b8856d; font-size: 0.9em; padding: 12px 20px;">Generate Test Data</button>
+                <button class="btn" onclick="showSheetData()" style="background: #7d6d9a;">🌐 Show Loaded Data</button>
                 <input type="file" id="importExcelInput" accept=".xlsx, .xls" style="display: none;">
             </div>
             <div style="margin-top: 30px;">
@@ -439,7 +439,6 @@
         </div>
     </div>
 
-    <!-- Modals omitted for brevity - same as before -->
     <div class="modal" id="applicationTypeModal">
         <div class="modal-content">
             <h2>Select Application Type</h2>
@@ -452,6 +451,261 @@
         </div>
     </div>
 
+    <div class="modal" id="nxctModal">
+        <div class="modal-content">
+            <h2>NXCT Application</h2>
+            <div class="upload-zone" onclick="document.getElementById('pdfInput').click()">
+                <input type="file" id="pdfInput" accept=".pdf" multiple style="display: none;">
+                <div style="font-size: 3em; margin-bottom: 15px;">📄</div>
+                <p style="font-size: 1.2em; font-weight: 600; color: #2c4a6e;">Upload NXCT Application PDF(s)</p>
+                <p style="color: #666;">Click to browse or drag and drop (multiple files supported)</p>
+            </div>
+            <div id="uploadStatus" class="status-message"></div>
+            <div id="extractedDataForm" style="display: none; position: relative; padding-bottom: 80px;">
+                <div class="section-title">Application Details</div>
+                <div class="two-column">
+                    <div class="input-group">
+                        <label>Application Number:</label>
+                        <input type="text" id="appNumber" readonly style="background: #f5f5f5;">
+                    </div>
+                    <div class="input-group">
+                        <label>Date Received:</label>
+                        <input type="text" id="dateReceived" readonly style="background: #f5f5f5;">
+                    </div>
+                </div>
+                <div class="section-title">Applicant Details</div>
+                <div class="input-group">
+                    <label>Full Name:</label>
+                    <input type="text" id="fullName">
+                </div>
+                <div class="input-group">
+                    <label>Organisation:</label>
+                    <input type="text" id="organisation">
+                </div>
+                <div class="input-group">
+                    <label>Email Address:</label>
+                    <input type="text" id="email">
+                </div>
+                <div class="section-title">Project Details</div>
+                <div class="input-group">
+                    <label>Project Title:</label>
+                    <input type="text" id="projectTitle">
+                </div>
+                <div class="input-group">
+                    <label>Project Description:</label>
+                    <textarea id="projectDescription" rows="6"></textarea>
+                </div>
+                <div class="two-column">
+                    <div class="input-group">
+                        <label>Primary Subject Sector:</label>
+                        <input type="text" id="subjectSector">
+                    </div>
+                    <div class="input-group">
+                        <label>Type of Work:</label>
+                        <input type="text" id="typeOfWork">
+                    </div>
+                </div>
+                <div class="two-column">
+                    <div class="input-group">
+                        <label>Free Beamtime Access:</label>
+                        <input type="text" id="freeBeamtime">
+                    </div>
+                    <div class="input-group">
+                        <label>Expected Days Needed:</label>
+                        <input type="text" id="daysNeeded">
+                    </div>
+                </div>
+                <div class="two-column">
+                    <div class="input-group">
+                        <label>Equipment Requested:</label>
+                        <input type="text" id="equipment">
+                    </div>
+                    <div class="input-group">
+                        <label>Previous XCT Experience:</label>
+                        <input type="text" id="previousExperience">
+                    </div>
+                </div>
+                <div class="section-title">Sample Details</div>
+                <div class="two-column">
+                    <div class="input-group">
+                        <label>Number of Samples:</label>
+                        <input type="text" id="numSamples">
+                    </div>
+                    <div class="input-group">
+                        <label>Sample Composition:</label>
+                        <input type="text" id="sampleComposition">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Sample Shape and Dimensions:</label>
+                    <input type="text" id="sampleDimensions">
+                </div>
+                <div class="two-column">
+                    <div class="input-group">
+                        <label>Hazardous Samples:</label>
+                        <input type="text" id="hazardous">
+                    </div>
+                    <div class="input-group">
+                        <label>Samples Ready:</label>
+                        <input type="text" id="samplesReady">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Ready Date:</label>
+                    <input type="text" id="readyDate">
+                </div>
+                <div class="input-group">
+                    <label>Feature Size:</label>
+                    <textarea id="featureSize" rows="3"></textarea>
+                </div>
+                <div class="input-group">
+                    <label>Scanning Area:</label>
+                    <input type="text" id="scanningArea">
+                </div>
+                <div class="input-group">
+                    <label>Analysis Help Needed:</label>
+                    <input type="text" id="analysisHelp">
+                </div>
+                <div class="input-group">
+                    <label>Analysis Details:</label>
+                    <textarea id="analysisDetails" rows="3"></textarea>
+                </div>
+                <div class="input-group">
+                    <label>Additional Notes:</label>
+                    <textarea id="additionalNotes" rows="3"></textarea>
+                </div>
+                <div style="position: sticky; bottom: 0; right: 0; background: white; padding: 20px 0; margin-top: 20px; border-top: 2px solid #e0e0e0; display: flex; justify-content: flex-end; gap: 15px;">
+                    <button class="close-btn" onclick="closeModal('nxctModal')">Cancel</button>
+                    <button class="btn" onclick="saveNXCTApplication()">Save Application</button>
+                </div>
+            </div>
+            <button class="close-btn" onclick="closeModal('nxctModal')" style="width: 100%;" id="cancelUploadBtn">Cancel</button>
+        </div>
+    </div>
+
+    <div class="modal" id="internalModal">
+        <div class="modal-content">
+            <h2>Internal Application</h2>
+            <div style="background: #e7f1ff; border: 2px solid #0d6efd; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+                <p style="margin: 0; color: #0d6efd; font-weight: 600;">Internal Number: <span id="internalNumberDisplay">Will be assigned on save</span></p>
+            </div>
+            
+            <div class="input-group">
+                <label>Experiment Title:</label>
+                <input type="text" id="internalTitle" placeholder="Enter experiment title">
+            </div>
+            
+            <div class="input-group">
+                <label>Experiment Lead:</label>
+                <input type="text" id="internalLead" placeholder="Enter name of experiment lead" required>
+            </div>
+            
+            <div class="input-group">
+                <label>Organisation:</label>
+                <input type="text" id="internalOrganisation" value="University College London">
+            </div>
+            
+            <div class="input-group">
+                <label>Email Address:</label>
+                <input type="email" id="internalEmail" placeholder="Enter email address" required>
+            </div>
+            
+            <div class="input-group">
+                <label>System Used:</label>
+                <select id="internalSystem">
+                    <option value="">Select system...</option>
+                    <option value="Microscope">Microscope</option>
+                    <option value="Large Field of View">Large Field of View</option>
+                    <option value="Medium Field of View">Medium Field of View</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            
+            <div class="input-group">
+                <label>Expected Days:</label>
+                <input type="number" id="internalDays" placeholder="Enter expected days" min="1">
+            </div>
+            
+            <div class="input-group">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-weight: 600; color: #333;">Free</span>
+                    <div class="toggle-switch" id="beamtimeToggle" onclick="toggleBeamtime()">
+                        <div class="toggle-slider"></div>
+                    </div>
+                    <span style="font-weight: 600; color: #333;">Paid</span>
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <label>Brief Experiment Description:</label>
+                <textarea id="internalNotes" placeholder="Brief description of the experiment" rows="4"></textarea>
+            </div>
+            
+            <div class="button-group">
+                <button class="btn" onclick="saveInternal()">Save</button>
+                <button class="close-btn" onclick="closeModal('internalModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="viewDetailsModal">
+        <div class="modal-content">
+            <h2 id="viewDetailsTitle">Application Details</h2>
+            <div id="viewDetailsContent"></div>
+            <button class="close-btn" onclick="closeModal('viewDetailsModal')" style="width: 100%; margin-top: 20px;">Close</button>
+        </div>
+    </div>
+
+    <div class="modal" id="analysisModal">
+        <div class="modal-content" style="max-width: 1100px;">
+            <h2>Analysis Dashboard</h2>
+            <div id="analysisContent"></div>
+            <button class="close-btn" onclick="closeModal('analysisModal')" style="width: 100%; margin-top: 20px;">Close</button>
+        </div>
+    </div>
+
+    <div class="modal" id="maintenanceModal">
+        <div class="modal-content" style="max-width: 800px;">
+            <h2>Maintenance Schedule</h2>
+            
+            <div style="margin-bottom: 30px;">
+                <h3 style="color: #2c4a6e; margin-bottom: 15px;">Add New Maintenance</h3>
+                
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                    <div style="text-align: center; margin-bottom: 15px;">
+                        <strong id="dateRangeDisplay" style="color: #2c4a6e; font-size: 1.1em;">Click on calendar to select start date</strong>
+                    </div>
+                    <div id="maintenanceCalendar"></div>
+                </div>
+                
+                <div class="input-group">
+                    <label>Description:</label>
+                    <textarea id="maintenanceDescription" rows="3" placeholder="Brief description of maintenance work"></textarea>
+                </div>
+                <div class="button-group">
+                    <button class="btn" onclick="addMaintenance()" style="background: #c94a4a;">Add Maintenance</button>
+                    <button class="btn" onclick="resetCalendar()" style="background: #8e7a6d;">Reset Dates</button>
+                </div>
+            </div>
+            
+            <div style="border-top: 2px solid #e0e0e0; padding-top: 20px;">
+                <h3 style="color: #2c4a6e; margin-bottom: 15px;">Scheduled Maintenance</h3>
+                <div id="maintenanceList"></div>
+            </div>
+            
+            <button class="close-btn" onclick="closeModal('maintenanceModal')" style="width: 100%; margin-top: 20px;">Close</button>
+        </div>
+    </div>
+    
+    <div class="modal" id="sheetDataModal">
+        <div class="modal-content">
+            <h2>Loaded Google Sheet Data</h2>
+            <div id="sheetStatusMessage" class="status-message status-info" style="display: none;"></div>
+            <div id="sheetDataList" style="margin-top: 20px;">
+                </div>
+            <button class="close-btn" onclick="closeModal('sheetDataModal')" style="width: 100%; margin-top: 20px;">Close</button>
+        </div>
+    </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
@@ -460,143 +714,90 @@
         let experimentLogs = [];
         let compactView = true;
         let internalCounter = 0;
+        let maintenanceRecords = [];
+        let selectedStartDate = null;
+        let selectedEndDate = null;
+        let currentCalendarMonth = new Date();
 
-        async function importFromGoogleSheets() {
-            const spreadsheetId = '1CYvhRqExOH7ZY99WMBSPZmCTc_4wkJVH6wl4mB7qJIQ';
-            const sheetId = '312513972';
-            const exportUrl = `https://docs.google.com/spreadsheets/d/1CYvhRqExOH7ZY99WMBSPZmCTc_4wkJVH6wl4mB7qJIQ/edit?usp=sharing`;
-            
+        // --- START NEW SHEET DATA CODE (From TEST.html) ---
+        const SHEET_DATA_ID = '1CYvhRqExOH7ZY99WMBSPZmCTc_4wkJVH6wl4mB7qJIQ';
+        // Selecting columns A through E, second row (LIMIT 1 OFFSET 1)
+        const SHEET_QUERY = encodeURIComponent('SELECT A, B, C, D, E LIMIT 1 OFFSET 1');
+        const SHEET_FETCH_URL = `https://docs.google.com/spreadsheets/d/${SHEET_DATA_ID}/gviz/tq?tqx=out:json&tq=${SHEET_QUERY}`;
+
+        function parseGoogleSheetResponse(text) {
             try {
-                const statusMessage = document.createElement('div');
-                statusMessage.className = 'status-message status-info';
-                statusMessage.textContent = 'Loading data from Google Sheets...';
-                statusMessage.style.display = 'block';
-                document.querySelector('.main-content').insertBefore(statusMessage, document.querySelector('.main-content').firstChild);
-                
-                const response = await fetch(exportUrl);
-                
-                if (!response.ok) {
-                    throw new Error('Failed to fetch Google Sheets data');
-                }
-                
-                const arrayBuffer = await response.arrayBuffer();
-                const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-                
-                const firstSheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[firstSheetName];
-                
-                const jsonData = XLSX.utils.sheet_to_json(worksheet);
-                
-                if (jsonData.length === 0) {
-                    statusMessage.className = 'status-message status-error';
-                    statusMessage.textContent = 'No data found in Google Sheets';
-                    setTimeout(() => statusMessage.remove(), 3000);
-                    return;
-                }
+                // Google wraps the JSON in a function call (JSONP). We need to strip it.
+                const start = text.indexOf('{');
+                const end = text.lastIndexOf(')');
+                const jsonString = text.substring(start, end);
+                return JSON.parse(jsonString);
+            } catch (e) {
+                console.error("Error parsing sheet response:", e);
+                return null;
+            }
+        }
 
-                const importedLogs = jsonData.map(row => {
-                    if (row.Type === 'NXCT') {
-                        return {
-                            type: 'NXCT',
-                            deleted: row.Deleted === 'Yes',
-                            timestamp: row['Logged At'] || new Date().toLocaleString(),
-                            data: {
-                                appNumber: row['Application Number'] || '',
-                                dateReceived: row['Date Received'] || '',
-                                fullName: row['Full Name'] || '',
-                                organisation: row['Organisation'] || '',
-                                email: row['Email'] || '',
-                                projectTitle: row['Project Title'] || '',
-                                projectDescription: row['Project Description'] || '',
-                                subjectSector: row['Primary Subject Sector'] || '',
-                                typeOfWork: row['Type of Work'] || '',
-                                freeBeamtime: row['Free Beamtime Access'] || '',
-                                daysNeeded: row['Expected Days Needed'] || '',
-                                equipment: row['Equipment Requested'] || '',
-                                previousExperience: row['Previous XCT Experience'] || '',
-                                equipmentUsed: row['Equipment Used'] ? row['Equipment Used'].split(', ').filter(e => e) : [],
-                                numSamples: row['Number of Samples'] || '',
-                                sampleComposition: row['Sample Composition'] || '',
-                                sampleDimensions: row['Sample Dimensions'] || '',
-                                hazardous: row['Hazardous Samples'] || '',
-                                samplesReady: row['Samples Ready'] || '',
-                                readyDate: row['Ready Date'] || '',
-                                featureSize: row['Feature Size'] || '',
-                                scanningArea: row['Scanning Area'] || '',
-                                analysisHelp: row['Analysis Help Needed'] || '',
-                                analysisDetails: row['Analysis Details'] || '',
-                                additionalNotes: row['Additional Notes'] || '',
-                                status: row['Status'] || 'Acknowledged',
-                                completionDate: row['Completion Date'] || '',
-                                actualDays: row['Days Used'] || '',
-                                dataSize: row['Data Size (GB)'] || '',
-                                analysisTime: row['Analysis Time (hours)'] || '',
-                                dataDeleted: row['Data Deleted'] || 'No',
-                                statusLog: row['Status Log'] ? JSON.parse(row['Status Log']) : [{ status: row['Status'] || 'Acknowledged', date: row['Logged At'] }]
-                            }
-                        };
-                    } else if (row.Type === 'Internal') {
-                        return {
-                            type: 'Internal',
-                            deleted: row.Deleted === 'Yes',
-                            timestamp: row['Logged At'] || new Date().toLocaleString(),
-                            data: {
-                                internalNumber: row['Application Number'] || '',
-                                dateReceived: row['Date Received'] || '',
-                                title: row['Project Title'] || '',
-                                lead: row['Full Name'] || '',
-                                organisation: row['Organisation'] || '',
-                                email: row['Email'] || '',
-                                system: row['Equipment Requested'] || '',
-                                expectedDays: row['Expected Days Needed'] || '',
-                                beamtime: row['Free Beamtime Access'] || '',
-                                notes: row['Project Description'] || '',
-                                completed: row['Status'] === 'Completed',
-                                completionDate: row['Completion Date'] || '',
-                                daysUsed: row['Days Used'] || ''
-                            }
-                        };
+        function updateSheetStatus(message, type) {
+            const statusDiv = document.getElementById('sheetStatusMessage');
+            statusDiv.textContent = message;
+            statusDiv.className = 'status-message status-' + type;
+            statusDiv.style.display = 'block';
+        }
+
+        async function fetchAndDisplaySheetData() {
+            const dataList = document.getElementById('sheetDataList');
+            updateSheetStatus('Loading data for the second row...', 'info');
+            dataList.innerHTML = '';
+
+            try {
+                const response = await fetch(SHEET_FETCH_URL);
+                const text = await response.text();
+                const json = parseGoogleSheetResponse(text);
+
+                if (!json || !json.table || !json.table.rows || json.table.rows.length === 0) {
+                    throw new Error("Invalid response or no data found in row.");
+                }
+                
+                const row = json.table.rows[0];
+                let dataHTML = '';
+                const headers = ['A', 'B', 'C', 'D', 'E'];
+
+                row.c.forEach((cell, index) => {
+                    // Check if the cell exists and has a value
+                    if (cell && cell.v !== null) {
+                        const header = headers[index] || 'Unknown';
+                        // Use formatted value (f) if available, otherwise raw value (v)
+                        const value = cell.f || cell.v;
+                        
+                        // Use the existing log-detail style for clean presentation in the modal
+                        dataHTML += `<div class="log-detail"><strong>Column ${header}:</strong> <span>${value}</span></div>`;
                     }
-                    return null;
-                }).filter(log => log !== null);
+                });
 
-                if (importedLogs.length === 0) {
-                    statusMessage.className = 'status-message status-error';
-                    statusMessage.textContent = 'No valid logs found in Google Sheets';
-                    setTimeout(() => statusMessage.remove(), 3000);
-                    return;
-                }
-
-                const shouldAppend = confirm(
-                    `Found ${importedLogs.length} log(s) in Google Sheets.\n\n` +
-                    `Click OK to ADD these to your current logs (${experimentLogs.length} existing).\n` +
-                    `Click Cancel to REPLACE all current logs with imported ones.`
-                );
-
-                if (shouldAppend) {
-                    experimentLogs = [...experimentLogs, ...importedLogs];
-                    statusMessage.className = 'status-message status-success';
-                    statusMessage.textContent = `Successfully imported ${importedLogs.length} log(s) from Google Sheets. Total logs: ${experimentLogs.length}`;
+                if (dataHTML) {
+                    dataList.innerHTML = dataHTML;
+                    updateSheetStatus('✓ Data loaded successfully. Displaying columns A-E from the second row.', 'success');
                 } else {
-                    experimentLogs = importedLogs;
-                    statusMessage.className = 'status-message status-success';
-                    statusMessage.textContent = `Successfully imported ${importedLogs.length} log(s) from Google Sheets. Previous logs replaced.`;
+                    updateSheetStatus('⚠ Data was fetched but all selected cells are empty.', 'info');
                 }
-
-                initializeInternalCounter();
-                renderLogs();
-                
-                setTimeout(() => statusMessage.remove(), 5000);
 
             } catch (error) {
-                console.error('Error importing from Google Sheets:', error);
-                const errorMessage = document.createElement('div');
-                errorMessage.className = 'status-message status-error';
-                errorMessage.textContent = 'Error loading Google Sheets data. Please check the spreadsheet is publicly accessible.';
-                errorMessage.style.display = 'block';
-                document.querySelector('.main-content').insertBefore(errorMessage, document.querySelector('.main-content').firstChild);
-                setTimeout(() => errorMessage.remove(), 5000);
+                console.error("Fetch error:", error);
+                updateSheetStatus('❌ Failed to load data. Ensure the Google Sheet is "Published to the web" and the ID/Query is correct. Error: ' + error.message, 'error');
             }
+        }
+
+        function showSheetData() {
+            document.getElementById('sheetDataModal').classList.add('active');
+            fetchAndDisplaySheetData();
+        }
+        // --- END NEW SHEET DATA CODE ---
+
+        function clearHighlightOnInput(field) {
+            field.style.borderColor = '#e0e0e0';
+            field.style.borderWidth = '2px';
+            field.style.boxShadow = 'none';
         }
 
         function initializeInternalCounter() {
@@ -610,37 +811,1203 @@
             internalCounter = maxNum;
         }
 
-        function renderLogs() {
-            const logsList = document.getElementById('logsList');
-            if (experimentLogs.length === 0) {
-                logsList.innerHTML = '<p style="text-align: center; color: #999;">No entries yet</p>';
-                return;
-            }
-            logsList.innerHTML = '<p style="text-align: center; color: #666;">Logs loaded successfully!</p>';
-        }
-
-        function toggleView() {
-            compactView = !compactView;
-            const toggle = document.getElementById('viewToggle');
-            if (compactView) {
-                toggle.classList.add('active');
-            } else {
-                toggle.classList.remove('active');
-            }
-            renderLogs();
-        }
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.remove('active');
+        function getNextInternalNumber() {
+            internalCounter++;
+            return String(internalCounter).padStart(4, '0');
         }
 
         function showApplicationChoice() {
             document.getElementById('applicationTypeModal').classList.add('active');
         }
 
-        renderLogs();
-        initializeInternalCounter();
-        document.getElementById('viewToggle').classList.add('active');
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+            if (modalId === 'nxctModal') {
+                document.getElementById('pdfInput').value = '';
+                document.getElementById('uploadStatus').style.display = 'none';
+                document.getElementById('extractedDataForm').style.display = 'none';
+                document.getElementById('cancelUploadBtn').style.display = 'block';
+            }
+            if (modalId === 'internalModal') {
+                document.getElementById('internalNumberDisplay').textContent = 'Will be assigned on save';
+            }
+            if (modalId === 'analysisModal') {
+                const analysisContent = document.getElementById('analysisContent');
+                analysisContent.innerHTML = '';
+            }
+            // Clear status when closing the new modal
+            if (modalId === 'sheetDataModal') {
+                document.getElementById('sheetStatusMessage').style.display = 'none';
+            }
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' || event.key === 'Esc') {
+                const modals = document.querySelectorAll('.modal.active');
+                modals.forEach(modal => {
+                    modal.classList.remove('active');
+                });
+            }
+        });
+
+        function selectNXCT() {
+            closeModal('applicationTypeModal');
+            document.getElementById('nxctModal').classList.add('active');
+        }
+
+        function selectInternal() {
+            closeModal('applicationTypeModal');
+            
+            const nextNumber = String(internalCounter + 1).padStart(4, '0');
+            document.getElementById('internalNumberDisplay').textContent = nextNumber;
+            
+            document.getElementById('internalModal').classList.add('active');
+        }
+
+        document.getElementById('pdfInput').addEventListener('change', handlePDFUpload);
+        document.getElementById('importExcelInput').addEventListener('change', handleExcelImport);
+
+        async function handlePDFUpload(event) {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
+            
+            showStatus(`Processing ${files.length} PDF file(s)...`, 'info');
+            
+            let successCount = 0;
+            let errorCount = 0;
+            
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                try {
+                    showStatus(`Processing ${i + 1} of ${files.length}: ${file.name}...`, 'info');
+                    
+                    const arrayBuffer = await file.arrayBuffer();
+                    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                    let fullText = '';
+                    for (let j = 1; j <= pdf.numPages; j++) {
+                        const page = await pdf.getPage(j);
+                        const textContent = await page.getTextContent();
+                        const pageText = textContent.items.map(item => item.str).join(' ');
+                        fullText += pageText + '\n';
+                    }
+                    extractDataFromText(fullText);
+                    successCount++;
+                } catch (error) {
+                    console.error(`Error processing ${file.name}:`, error);
+                    errorCount++;
+                }
+            }
+            
+            if (errorCount === 0) {
+                showStatus(`✓ Successfully extracted data from ${successCount} PDF(s)! Review below and click Save.`, 'success');
+            } else {
+                showStatus(`⚠ Extracted ${successCount} successfully, ${errorCount} failed.`, 'info');
+            }
+            
+            document.getElementById('extractedDataForm').style.display = 'block';
+            document.getElementById('cancelUploadBtn').style.display = 'none';
+        }
+
+        function extractDataFromText(text) {
+            function cleanText(str) {
+                if (!str) return '';
+                str = str.replace(/\*/g, '').replace(/\?/g, '').replace(/\s+/g, ' ').trim();
+                str = str.replace(/Applicant Details/gi, '');
+                str = str.replace(/Project Details/gi, '');
+                str = str.replace(/\(length x width x height\)/gi, '');
+                str = str.replace(/for scanning\/shipped to the facility/gi, '');
+                str = str.replace(/\(whole sample, region of interest, other\)/gi, '');
+                return str.trim();
+            }
+
+            function extractBetween(text, startLabel, endLabel) {
+                const start = startLabel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const end = endLabel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const regex = new RegExp(start + '\\s*\\*?\\s*([\\s\\S]*?)(?=' + end + '|$)', 'i');
+                const match = text.match(regex);
+                return match ? cleanText(match[1]) : '';
+            }
+
+            document.getElementById('appNumber').value = extractBetween(text, 'APPLICATION NUMBER', 'DATE RECEIVED');
+            document.getElementById('dateReceived').value = extractBetween(text, 'DATE RECEIVED', 'Full Name');
+            document.getElementById('fullName').value = extractBetween(text, 'Full Name', 'Organisation');
+            document.getElementById('organisation').value = extractBetween(text, 'Organisation', 'Email Address');
+            document.getElementById('email').value = extractBetween(text, 'Email Address', 'Project Title');
+            document.getElementById('projectTitle').value = extractBetween(text, 'Project Title', 'Project Description');
+            
+            let desc = extractBetween(text, 'Project Description', 'Primary Subject Sector');
+            desc = desc.replace(/in\s+ammatory/g, 'inflammatory').replace(/e\s+cacy/g, 'efficacy').replace(/\s+rst/g, ' first');
+            document.getElementById('projectDescription').value = desc;
+
+            document.getElementById('subjectSector').value = extractBetween(text, 'Primary Subject Sector', 'Answer if');
+            document.getElementById('typeOfWork').value = extractBetween(text, 'Type of Work', 'Applying for the NXCT Free Beamtime Access Scheme');
+            document.getElementById('freeBeamtime').value = extractBetween(text, 'Applying for the NXCT Free Beamtime Access Scheme', 'If an SME');
+            document.getElementById('daysNeeded').value = extractBetween(text, 'Expected number of days needed', 'Requested date of completion');
+            
+            let equipment = text.match(/Piece\s*\(\s*s\s*\)\s*of equipment requested[^*]*\*?\s*([^\n]+?)\s*NXCT facility equipment is based at/i);
+            if (equipment) {
+                document.getElementById('equipment').value = cleanText(equipment[1]);
+            }
+            
+            document.getElementById('previousExperience').value = extractBetween(text, 'Any previous experience with X-ray Computed Tomography', 'If yes, details of previous experience');
+            document.getElementById('numSamples').value = extractBetween(text, 'Number of samples', 'Sample shape and dimension');
+            document.getElementById('sampleDimensions').value = extractBetween(text, 'Sample shape and dimension', 'Sample composition');
+            document.getElementById('sampleComposition').value = extractBetween(text, 'Sample composition', 'Hazardous samples');
+            document.getElementById('hazardous').value = extractBetween(text, 'Hazardous samples', 'If yes, details of hazardous samples');
+            
+            let scanArea = text.match(/Scanning area[^)]*\)\s*\*?\s*([^\n]+?)\s*Sample\s*\(\s*s\s*\)\s*ready/i);
+            if (scanArea) {
+                document.getElementById('scanningArea').value = cleanText(scanArea[1]);
+            }
+
+            let samplesReady = text.match(/Sample\s*\(\s*s\s*\)\s*ready\s*\*?\s*([^\n]+?)\s*Date when samples will be ready/i);
+            if (samplesReady) {
+                document.getElementById('samplesReady').value = cleanText(samplesReady[1]);
+            }
+
+            document.getElementById('readyDate').value = extractBetween(text, 'Date when samples will be ready', 'Size of feature');
+            
+            let featureSize = text.match(/Size of feature\s*\(\s*s\s*\)\s*\*?\s*([\s\S]+?)\s*In-situ or rig-only experiment/i);
+            if (featureSize) {
+                document.getElementById('featureSize').value = cleanText(featureSize[1]);
+            }
+
+            document.getElementById('analysisHelp').value = extractBetween(text, 'Analysis help needed', 'If yes or not sure, details of analysis help needed');
+            document.getElementById('analysisDetails').value = extractBetween(text, 'If yes or not sure, details of analysis help needed', 'Details of any previous NXCT work');
+        }
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('uploadStatus');
+            statusDiv.textContent = message;
+            statusDiv.className = 'status-message status-' + type;
+            statusDiv.style.display = 'block';
+        }
+
+        function saveNXCTApplication() {
+            const data = {
+                appNumber: document.getElementById('appNumber').value,
+                dateReceived: document.getElementById('dateReceived').value,
+                fullName: document.getElementById('fullName').value,
+                organisation: document.getElementById('organisation').value,
+                email: document.getElementById('email').value,
+                projectTitle: document.getElementById('projectTitle').value,
+                projectDescription: document.getElementById('projectDescription').value,
+                subjectSector: document.getElementById('subjectSector').value,
+                typeOfWork: document.getElementById('typeOfWork').value,
+                freeBeamtime: document.getElementById('freeBeamtime').value,
+                daysNeeded: document.getElementById('daysNeeded').value,
+                equipment: document.getElementById('equipment').value,
+                previousExperience: document.getElementById('previousExperience').value,
+                numSamples: document.getElementById('numSamples').value,
+                sampleComposition: document.getElementById('sampleComposition').value,
+                sampleDimensions: document.getElementById('sampleDimensions').value,
+                hazardous: document.getElementById('hazardous').value,
+                samplesReady: document.getElementById('samplesReady').value,
+                readyDate: document.getElementById('readyDate').value,
+                featureSize: document.getElementById('featureSize').value,
+                scanningArea: document.getElementById('scanningArea').value,
+                analysisHelp: document.getElementById('analysisHelp').value,
+                analysisDetails: document.getElementById('analysisDetails').value,
+                additionalNotes: document.getElementById('additionalNotes').value,
+                status: 'Acknowledged',
+                completionDate: '',
+                actualDays: '',
+                dataSize: '',
+                analysisTime: '',
+                dataDeleted: 'No',
+                statusLog: [{ status: 'Acknowledged', date: new Date().toLocaleString() }]
+            };
+            
+            experimentLogs.unshift({
+                type: 'NXCT',
+                timestamp: new Date().toLocaleString(),
+                data
+            });
+
+            renderLogs();
+            document.getElementById('pdfInput').value = '';
+            document.getElementById('extractedDataForm').style.display = 'none';
+            document.getElementById('cancelUploadBtn').style.display = 'block';
+            closeModal('nxctModal');
+            // // alert('NXCT Application saved successfully!');
+        }
+        
+        function saveNXCTApplicationSilent() {
+            const data = {
+                appNumber: document.getElementById('appNumber').value,
+                dateReceived: document.getElementById('dateReceived').value,
+                fullName: document.getElementById('fullName').value,
+                organisation: document.getElementById('organisation').value,
+                email: document.getElementById('email').value,
+                projectTitle: document.getElementById('projectTitle').value,
+                projectDescription: document.getElementById('projectDescription').value,
+                subjectSector: document.getElementById('subjectSector').value,
+                typeOfWork: document.getElementById('typeOfWork').value,
+                freeBeamtime: document.getElementById('freeBeamtime').value,
+                daysNeeded: document.getElementById('daysNeeded').value,
+                equipment: document.getElementById('equipment').value,
+                previousExperience: document.getElementById('previousExperience').value,
+                numSamples: document.getElementById('numSamples').value,
+                sampleComposition: document.getElementById('sampleComposition').value,
+                sampleDimensions: document.getElementById('sampleDimensions').value,
+                hazardous: document.getElementById('hazardous').value,
+                samplesReady: document.getElementById('samplesReady').value,
+                readyDate: document.getElementById('readyDate').value,
+                featureSize: document.getElementById('featureSize').value,
+                scanningArea: document.getElementById('scanningArea').value,
+                analysisHelp: document.getElementById('analysisHelp').value,
+                analysisDetails: document.getElementById('analysisDetails').value,
+                additionalNotes: document.getElementById('additionalNotes').value,
+                status: 'Acknowledged',
+                completionDate: '',
+                actualDays: '',
+                dataSize: '',
+                analysisTime: '',
+                dataDeleted: 'No',
+                statusLog: [{ status: 'Acknowledged', date: new Date().toLocaleString() }]
+            };
+            
+            experimentLogs.unshift({
+                type: 'NXCT',
+                timestamp: new Date().toLocaleString(),
+                data
+            });
+            renderLogs();
+        }
+
+        function saveInternal() {
+            const title = document.getElementById('internalTitle').value.trim();
+            const lead = document.getElementById('internalLead').value.trim();
+            const organisation = document.getElementById('internalOrganisation').value.trim();
+            const email = document.getElementById('internalEmail').value.trim();
+            const system = document.getElementById('internalSystem').value;
+            const expectedDays = document.getElementById('internalDays').value;
+            const beamtimeToggle = document.getElementById('beamtimeToggle');
+            const beamtime = beamtimeToggle.classList.contains('active') ? 'Paid' : 'Free';
+            const notes = document.getElementById('internalNotes').value.trim();
+            
+            if (!title) {
+                // alert('Please enter a title');
+                return;
+            }
+            if (!lead) {
+                // alert('Please enter experiment lead name');
+                return;
+            }
+            if (!email) {
+                // alert('Please enter email address');
+                return;
+            }
+
+            const internalNumber = getNextInternalNumber();
+            const dateReceived = new Date().toLocaleDateString('en-GB');
+
+            experimentLogs.unshift({
+                type: 'Internal',
+                timestamp: new Date().toLocaleString(),
+                data: {
+                    internalNumber,
+                    dateReceived,
+                    title,
+                    lead,
+                    organisation,
+                    email,
+                    system,
+                    expectedDays,
+                    beamtime,
+                    notes,
+                    status: 'Acknowledged',
+                    completionDate: '',
+                    actualDays: '',
+                    dataSize: '',
+                    analysisTime: '',
+                    dataDeleted: 'No',
+                    statusLog: [{ status: 'Acknowledged', date: new Date().toLocaleString() }]
+                }
+            });
+
+            renderLogs();
+            document.getElementById('internalTitle').value = '';
+            document.getElementById('internalLead').value = '';
+            document.getElementById('internalEmail').value = '';
+            document.getElementById('internalSystem').value = '';
+            document.getElementById('internalDays').value = '';
+            document.getElementById('internalNotes').value = '';
+            
+            closeModal('internalModal');
+            // // alert(`Internal Application ${internalNumber} saved successfully!`);
+        }
+
+        function toggleBeamtime() {
+            document.getElementById('beamtimeToggle').classList.toggle('active');
+        }
+
+        function renderLogs() {
+            const logsList = document.getElementById('logsList');
+            logsList.innerHTML = experimentLogs.map((log, index) => {
+                const isDeleted = log.data.dataDeleted === 'Yes';
+                const typeText = log.type === 'NXCT' ? `App: ${log.data.appNumber}` : `Internal: ${log.data.internalNumber}`;
+                const titleText = log.type === 'NXCT' ? log.data.projectTitle : log.data.title;
+                const statusClass = log.data.status.toLowerCase().replace(/[^a-z0-9]/g, '-');
+                const compactClass = compactView ? 'compact' : '';
+                const dataIndicatorClass = log.data.dataDeleted === 'Yes' ? 'deleted' : (log.data.dataSize ? 'stored' : 'warning');
+                const dataIndicatorText = log.data.dataDeleted === 'Yes' ? 'Data Deleted' : (log.data.dataSize ? `Data Stored (${log.data.dataSize})` : 'Data Pending');
+
+                return `
+                    <div class="log-entry status-${statusClass} ${compactClass} ${isDeleted ? 'deleted' : ''}" onclick="viewLogDetails(${index})">
+                        ${isDeleted ? '<span class="deleted-badge">DELETED</span>' : ''}
+                        <span class="status-badge ${statusClass}">${log.data.status}</span>
+                        <span class="data-indicator ${dataIndicatorClass}">${dataIndicatorText}</span>
+                        <h3>
+                            ${typeText} - ${titleText}
+                        </h3>
+                        <div class="log-detail">
+                            <strong>Date Received:</strong> <span>${log.data.dateReceived}</span>
+                        </div>
+                        <div class="log-detail">
+                            <strong>Lead/Applicant:</strong> <span>${log.type === 'NXCT' ? log.data.fullName : log.data.lead} (${log.data.organisation})</span>
+                        </div>
+                        <p style="margin-top: 10px; color: #666;">${log.type === 'NXCT' ? log.data.projectDescription.substring(0, 100) + '...' : log.data.notes.substring(0, 100) + '...'}</p>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleView() {
+            compactView = !compactView;
+            document.getElementById('viewToggle').classList.toggle('active');
+            renderLogs();
+            if (compactView) {
+                document.querySelector('.view-toggle .toggle-label').textContent = 'Compact View';
+            } else {
+                document.querySelector('.view-toggle .toggle-label').textContent = 'Detailed View';
+            }
+        }
+
+        function viewLogDetails(index) {
+            const log = experimentLogs[index];
+            const modal = document.getElementById('viewDetailsModal');
+            const titleElement = document.getElementById('viewDetailsTitle');
+            const contentElement = document.getElementById('viewDetailsContent');
+            
+            titleElement.textContent = `${log.type} Application Details`;
+            
+            let contentHTML = '';
+            
+            // Status update section
+            contentHTML += `
+                <div style="margin-bottom: 20px; padding: 15px; border-radius: 8px; background: #f0f3f6;">
+                    <h3 style="margin-bottom: 10px; color: #2c4a6e;">Status History</h3>
+                    <select id="statusSelect" style="width: 100%; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
+                        <option value="Acknowledged" ${log.data.status === 'Acknowledged' ? 'selected' : ''}>Acknowledged</option>
+                        <option value="Samples Received" ${log.data.status === 'Samples Received' ? 'selected' : ''}>Samples Received</option>
+                        <option value="Scanning" ${log.data.status === 'Scanning' ? 'selected' : ''}>Scanning</option>
+                        <option value="Scan Complete" ${log.data.status === 'Scan Complete' ? 'selected' : ''}>Scan Complete</option>
+                        <option value="Results Ready" ${log.data.status === 'Results Ready' ? 'selected' : ''}>Results Ready</option>
+                        <option value="Data Transferred" ${log.data.status === 'Data Transferred' ? 'selected' : ''}>Data Transferred</option>
+                    </select>
+                    <button class="btn" style="padding: 8px 15px; font-size: 0.9em; margin-right: 10px;" onclick="updateStatus(${index})">Update Status</button>
+                    <div style="margin-top: 15px; max-height: 150px; overflow-y: auto; background: white; padding: 10px; border-radius: 8px;">
+                        ${log.data.statusLog.map(s => `<div style="font-size: 0.9em; border-bottom: 1px dashed #eee; padding: 5px 0;"><strong>${s.status}</strong> on ${s.date}</div>`).reverse().join('')}
+                    </div>
+                </div>
+            `;
+            
+            // Detailed data display
+            contentHTML += '<div class="two-column" style="margin-top: 20px;">';
+
+            // General Details Column (same for both types)
+            if (log.type === 'NXCT') {
+                contentHTML += `
+                    <div style="grid-column: 1 / -1;"><h3 class="section-title" style="margin-top: 0;">Application Details</h3></div>
+                    <div class="log-detail"><strong>App Number:</strong> <span>${log.data.appNumber}</span></div>
+                    <div class="log-detail"><strong>Date Received:</strong> <span>${log.data.dateReceived}</span></div>
+                    <div class="log-detail"><strong>Applicant Name:</strong> <span>${log.data.fullName}</span></div>
+                    <div class="log-detail"><strong>Organisation:</strong> <span>${log.data.organisation}</span></div>
+                    <div class="log-detail"><strong>Email:</strong> <span>${log.data.email}</span></div>
+                    <div class="log-detail" style="grid-column: 1 / -1;"><strong>Project Title:</strong> <span>${log.data.projectTitle}</span></div>
+                    <div class="log-detail" style="grid-column: 1 / -1;"><strong>Description:</strong> <span>${log.data.projectDescription}</span></div>
+                    <div style="grid-column: 1 / -1;"><h3 class="section-title">Logistics & Results</h3></div>
+                    <div class="log-detail"><strong>Days Needed:</strong> <span>${log.data.daysNeeded}</span></div>
+                    <div class="log-detail"><strong>Actual Days:</strong> <span><input type="text" id="actualDays" value="${log.data.actualDays}" oninput="clearHighlightOnInput(this)"></span></div>
+                    <div class="log-detail"><strong>Completion Date:</strong> <span><input type="text" id="completionDate" value="${log.data.completionDate}" oninput="clearHighlightOnInput(this)"></span></div>
+                    <div class="log-detail"><strong>Data Size (GB):</strong> <span><input type="text" id="dataSize" value="${log.data.dataSize}" oninput="clearHighlightOnInput(this)"></span></div>
+                    <div class="log-detail"><strong>Analysis Time (hrs):</strong> <span><input type="text" id="analysisTime" value="${log.data.analysisTime}" oninput="clearHighlightOnInput(this)"></span></div>
+                    <div class="log-detail"><strong>Data Deleted:</strong> <span>
+                        <select id="dataDeleted" onchange="clearHighlightOnInput(this)">
+                            <option value="No" ${log.data.dataDeleted === 'No' ? 'selected' : ''}>No</option>
+                            <option value="Yes" ${log.data.dataDeleted === 'Yes' ? 'selected' : ''}>Yes</option>
+                        </select>
+                    </span></div>
+                    <div class="log-detail" style="grid-column: 1 / -1;"><strong>Full Notes:</strong> <span>${log.data.additionalNotes || 'N/A'}</span></div>
+                `;
+            } else { // Internal Log
+                contentHTML += `
+                    <div style="grid-column: 1 / -1;"><h3 class="section-title" style="margin-top: 0;">Internal Experiment Details</h3></div>
+                    <div class="log-detail"><strong>Internal Number:</strong> <span>${log.data.internalNumber}</span></div>
+                    <div class="log-detail"><strong>Date Added:</strong> <span>${log.data.dateReceived}</span></div>
+                    <div class="log-detail"><strong>Experiment Lead:</strong> <span>${log.data.lead}</span></div>
+                    <div class="log-detail"><strong>System Used:</strong> <span>${log.data.system}</span></div>
+                    <div class="log-detail"><strong>Beamtime:</strong> <span>${log.data.beamtime}</span></div>
+                    <div class="log-detail"><strong>Expected Days:</strong> <span>${log.data.expectedDays}</span></div>
+                    <div class="log-detail" style="grid-column: 1 / -1;"><strong>Title:</strong> <span>${log.data.title}</span></div>
+                    <div class="log-detail" style="grid-column: 1 / -1;"><strong>Description:</strong> <span>${log.data.notes}</span></div>
+                    <div style="grid-column: 1 / -1;"><h3 class="section-title">Logistics & Results</h3></div>
+                    <div class="log-detail"><strong>Actual Days:</strong> <span><input type="text" id="actualDays" value="${log.data.actualDays}" oninput="clearHighlightOnInput(this)"></span></div>
+                    <div class="log-detail"><strong>Completion Date:</strong> <span><input type="text" id="completionDate" value="${log.data.completionDate}" oninput="clearHighlightOnInput(this)"></span></div>
+                    <div class="log-detail"><strong>Data Size (GB):</strong> <span><input type="text" id="dataSize" value="${log.data.dataSize}" oninput="clearHighlightOnInput(this)"></span></div>
+                    <div class="log-detail"><strong>Analysis Time (hrs):</strong> <span><input type="text" id="analysisTime" value="${log.data.analysisTime}" oninput="clearHighlightOnInput(this)"></span></div>
+                    <div class="log-detail"><strong>Data Deleted:</strong> <span>
+                        <select id="dataDeleted" onchange="clearHighlightOnInput(this)">
+                            <option value="No" ${log.data.dataDeleted === 'No' ? 'selected' : ''}>No</option>
+                            <option value="Yes" ${log.data.dataDeleted === 'Yes' ? 'selected' : ''}>Yes</option>
+                        </select>
+                    </span></div>
+                `;
+            }
+
+            contentHTML += '</div>';
+            
+            contentHTML += `
+                <div class="button-group" style="margin-top: 30px;">
+                    <button class="btn" style="background: #4a7c59;" onclick="saveLogDetails(${index})">Save Changes</button>
+                    <button class="btn" style="background: #c94a4a;" onclick="deleteLog(${index})">Delete Log</button>
+                    <button class="close-btn" onclick="closeModal('viewDetailsModal')">Close</button>
+                </div>
+            `;
+            
+            contentElement.innerHTML = contentHTML;
+            modal.classList.add('active');
+        }
+
+        function updateStatus(index) {
+            const newStatus = document.getElementById('statusSelect').value;
+            const log = experimentLogs[index];
+            
+            if (log.data.status !== newStatus) {
+                log.data.status = newStatus;
+                log.data.statusLog.push({ status: newStatus, date: new Date().toLocaleString() });
+                // Re-render the details modal and main logs list
+                viewLogDetails(index); 
+                renderLogs();
+            }
+        }
+
+        function saveLogDetails(index) {
+            const log = experimentLogs[index];
+            
+            // Get data from inputs, highlighting empty ones that are being saved as empty
+            const actualDaysField = document.getElementById('actualDays');
+            const completionDateField = document.getElementById('completionDate');
+            const dataSizeField = document.getElementById('dataSize');
+            const analysisTimeField = document.getElementById('analysisTime');
+            const dataDeletedField = document.getElementById('dataDeleted');
+            
+            log.data.actualDays = actualDaysField.value;
+            log.data.completionDate = completionDateField.value;
+            log.data.dataSize = dataSizeField.value;
+            log.data.analysisTime = analysisTimeField.value;
+            log.data.dataDeleted = dataDeletedField.value;
+
+            // Highlight if they are empty
+            if (log.data.actualDays.trim() === '') actualDaysField.style.borderColor = '#c9a86a';
+            if (log.data.completionDate.trim() === '') completionDateField.style.borderColor = '#c9a86a';
+            if (log.data.dataSize.trim() === '') dataSizeField.style.borderColor = '#c9a86a';
+            if (log.data.analysisTime.trim() === '') analysisTimeField.style.borderColor = '#c9a86a';
+
+            renderLogs();
+            // alert('Log details updated successfully!');
+        }
+
+        function deleteLog(index) {
+            if (confirm(`Are you sure you want to delete this ${experimentLogs[index].type} log? This action is not reversible.`)) {
+                experimentLogs.splice(index, 1);
+                renderLogs();
+                closeModal('viewDetailsModal');
+            }
+        }
+        
+        // Excel Functionality
+        function exportToExcel() {
+            const dataForSheet = experimentLogs.map(log => {
+                const baseData = {
+                    'Type': log.type,
+                    'ID/Number': log.type === 'NXCT' ? log.data.appNumber : log.data.internalNumber,
+                    'Date Received': log.data.dateReceived,
+                    'Status': log.data.status,
+                    'Project Title': log.type === 'NXCT' ? log.data.projectTitle : log.data.title,
+                    'Lead/Applicant': log.type === 'NXCT' ? log.data.fullName : log.data.lead,
+                    'Organisation': log.data.organisation,
+                    'Email': log.data.email,
+                    'Description': log.type === 'NXCT' ? log.data.projectDescription : log.data.notes,
+                    'Expected Days': log.type === 'NXCT' ? log.data.daysNeeded : log.data.expectedDays,
+                    'Actual Days': log.data.actualDays,
+                    'Completion Date': log.data.completionDate,
+                    'Data Size (GB)': log.data.dataSize,
+                    'Analysis Time (hrs)': log.data.analysisTime,
+                    'Data Deleted': log.data.dataDeleted
+                };
+                
+                if (log.type === 'NXCT') {
+                    return {
+                        ...baseData,
+                        'Subject Sector': log.data.subjectSector,
+                        'Type of Work': log.data.typeOfWork,
+                        'Free Beamtime': log.data.freeBeamtime,
+                        'Equipment': log.data.equipment,
+                        'Previous Experience': log.data.previousExperience,
+                        'Num Samples': log.data.numSamples,
+                        'Sample Composition': log.data.sampleComposition,
+                        'Sample Dimensions': log.data.sampleDimensions,
+                        'Hazardous': log.data.hazardous,
+                        'Samples Ready': log.data.samplesReady,
+                        'Ready Date': log.data.readyDate,
+                        'Feature Size': log.data.featureSize,
+                        'Scanning Area': log.data.scanningArea,
+                        'Analysis Help': log.data.analysisHelp,
+                        'Analysis Details': log.data.analysisDetails,
+                        'Additional Notes': log.data.additionalNotes
+                    };
+                } else {
+                    return {
+                        ...baseData,
+                        'System Used': log.data.system,
+                        'Beamtime Type': log.data.beamtime
+                    };
+                }
+            });
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(dataForSheet);
+            XLSX.utils.book_append_sheet(wb, ws, "Experiment Log");
+            XLSX.writeFile(wb, "NXCT_Experiment_Log.xlsx");
+        }
+        
+        function handleExcelImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    const json = XLSX.utils.sheet_to_json(worksheet);
+                    
+                    // Simple check to ensure data format is plausible for logs
+                    if (json.length > 0 && json[0].Type) {
+                        importLogs(json);
+                        // alert(`Successfully imported ${json.length} logs.`);
+                        document.getElementById('importExcelInput').value = '';
+                    } else {
+                        // alert('Import failed: Could not recognize log data structure in the file.');
+                    }
+                } catch (error) {
+                    console.error('Error importing file:', error);
+                    // alert('Import failed: Could not read the file.');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+        
+        function importLogs(json) {
+            json.forEach(row => {
+                // Determine log type and structure the data object
+                let logData = {};
+                let type = row.Type;
+                
+                if (type === 'NXCT') {
+                    logData = {
+                        appNumber: row['ID/Number'],
+                        dateReceived: row['Date Received'],
+                        fullName: row['Lead/Applicant'],
+                        organisation: row['Organisation'],
+                        email: row['Email'],
+                        projectTitle: row['Project Title'],
+                        projectDescription: row['Description'],
+                        subjectSector: row['Subject Sector'] || '',
+                        typeOfWork: row['Type of Work'] || '',
+                        freeBeamtime: row['Free Beamtime'] || '',
+                        daysNeeded: row['Expected Days'],
+                        equipment: row['Equipment'] || '',
+                        previousExperience: row['Previous Experience'] || '',
+                        numSamples: row['Num Samples'] || '',
+                        sampleComposition: row['Sample Composition'] || '',
+                        sampleDimensions: row['Sample Dimensions'] || '',
+                        hazardous: row['Hazardous'] || '',
+                        samplesReady: row['Samples Ready'] || '',
+                        readyDate: row['Ready Date'] || '',
+                        featureSize: row['Feature Size'] || '',
+                        scanningArea: row['Scanning Area'] || '',
+                        analysisHelp: row['Analysis Help'] || '',
+                        analysisDetails: row['Analysis Details'] || '',
+                        additionalNotes: row['Additional Notes'] || '',
+                        status: row.Status || 'Acknowledged',
+                        completionDate: row['Completion Date'] || '',
+                        actualDays: row['Actual Days'] || '',
+                        dataSize: row['Data Size (GB)'] || '',
+                        analysisTime: row['Analysis Time (hrs)'] || '',
+                        dataDeleted: row['Data Deleted'] || 'No',
+                        statusLog: [{ status: row.Status || 'Acknowledged', date: new Date().toLocaleString() }]
+                    };
+                } else if (type === 'Internal') {
+                    logData = {
+                        internalNumber: row['ID/Number'],
+                        dateReceived: row['Date Received'],
+                        title: row['Project Title'],
+                        lead: row['Lead/Applicant'],
+                        organisation: row['Organisation'],
+                        email: row['Email'],
+                        system: row['System Used'] || '',
+                        expectedDays: row['Expected Days'],
+                        beamtime: row['Beamtime Type'] || 'Free',
+                        notes: row['Description'],
+                        status: row.Status || 'Acknowledged',
+                        completionDate: row['Completion Date'] || '',
+                        actualDays: row['Actual Days'] || '',
+                        dataSize: row['Data Size (GB)'] || '',
+                        analysisTime: row['Analysis Time (hrs)'] || '',
+                        dataDeleted: row['Data Deleted'] || 'No',
+                        statusLog: [{ status: row.Status || 'Acknowledged', date: new Date().toLocaleString() }]
+                    };
+                }
+
+                if (type) {
+                    experimentLogs.unshift({
+                        type: type,
+                        timestamp: new Date().toLocaleString(),
+                        data: logData
+                    });
+                }
+            });
+            
+            initializeInternalCounter();
+            renderLogs();
+        }
+
+        // Analysis Functions
+        let analysisChart = null;
+
+        function showAnalysis() {
+            renderAnalysis();
+            document.getElementById('analysisModal').classList.add('active');
+        }
+
+        function renderAnalysis() {
+            const analysisContent = document.getElementById('analysisContent');
+            analysisContent.innerHTML = ''; // Clear previous content
+
+            // 1. Status Overview (Pie Chart)
+            const statusCounts = experimentLogs.reduce((acc, log) => {
+                acc[log.data.status] = (acc[log.data.status] || 0) + 1;
+                return acc;
+            }, {});
+
+            const statusLabels = Object.keys(statusCounts);
+            const statusData = Object.values(statusCounts);
+            const statusColors = statusLabels.map(label => {
+                switch (label) {
+                    case 'Acknowledged': return '#6d7a8a';
+                    case 'Samples Received': return '#5d8a9e';
+                    case 'Scanning': return '#c9a86a';
+                    case 'Scan Complete': return '#b8856d';
+                    case 'Results Ready': return '#5d8a6d';
+                    case 'Data Transferred': return '#7d6d9a';
+                    default: return '#ccc';
+                }
+            });
+
+            analysisContent.innerHTML += `
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                        <h3 style="color: #2c4a6e; margin-bottom: 15px;">Application Status Overview</h3>
+                        <div style="max-height: 400px;"><canvas id="statusChart"></canvas></div>
+                    </div>
+                    <div id="summaryCards" style="display: flex; flex-direction: column; gap: 15px;">
+                        </div>
+                </div>
+                <div style="border-top: 2px solid #e0e0e0; padding-top: 20px; margin-bottom: 20px;">
+                    <h3 style="color: #2c4a6e; margin-bottom: 15px;">Data Usage & Metrics</h3>
+                    <div style="max-height: 400px;"><canvas id="dataMetricsChart"></canvas></div>
+                </div>
+            `;
+            
+            // Render Status Chart
+            if (analysisChart) {
+                analysisChart.destroy();
+            }
+            const ctxStatus = document.getElementById('statusChart').getContext('2d');
+            analysisChart = new Chart(ctxStatus, {
+                type: 'doughnut',
+                data: {
+                    labels: statusLabels,
+                    datasets: [{
+                        data: statusData,
+                        backgroundColor: statusColors,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Total Logs by Status'
+                        }
+                    }
+                }
+            });
+            
+            // Render Data Metrics Chart (Example: Data Size vs. Analysis Time for completed tasks)
+            const completedLogs = experimentLogs.filter(log => log.data.completionDate && log.data.dataSize && log.data.analysisTime);
+            
+            const dataMetricsLabels = completedLogs.map(log => log.type === 'NXCT' ? log.data.appNumber : log.data.internalNumber);
+            const dataSizes = completedLogs.map(log => parseFloat(log.data.dataSize) || 0);
+            const analysisTimes = completedLogs.map(log => parseFloat(log.data.analysisTime) || 0);
+
+            const ctxMetrics = document.getElementById('dataMetricsChart').getContext('2d');
+            new Chart(ctxMetrics, {
+                type: 'bar',
+                data: {
+                    labels: dataMetricsLabels,
+                    datasets: [
+                        {
+                            label: 'Data Size (GB)',
+                            data: dataSizes,
+                            backgroundColor: 'rgba(44, 74, 110, 0.8)',
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Analysis Time (hrs)',
+                            data: analysisTimes,
+                            backgroundColor: 'rgba(93, 138, 158, 0.8)',
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Data Size and Analysis Time for Completed Logs'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Data Size (GB)'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            grid: {
+                                drawOnChartArea: false, // only draw grid lines for the left axis
+                            },
+                            title: {
+                                display: true,
+                                text: 'Analysis Time (hrs)'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Summary Cards
+            const totalLogs = experimentLogs.length;
+            const avgDataSize = (dataSizes.reduce((a, b) => a + b, 0) / dataSizes.length) || 0;
+            const avgDays = (completedLogs.map(log => parseFloat(log.data.actualDays) || 0).reduce((a, b) => a + b, 0) / completedLogs.length) || 0;
+            const deletedCount = experimentLogs.filter(log => log.data.dataDeleted === 'Yes').length;
+            
+            const summaryCardsHTML = `
+                ${createSummaryCard('Total Logs', totalLogs, '#2c4a6e')}
+                ${createSummaryCard('Avg. Data Size (GB)', avgDataSize.toFixed(2), '#5d8a9e')}
+                ${createSummaryCard('Avg. Project Days', avgDays.toFixed(1), '#4a7c59')}
+                ${createSummaryCard('Data Logs Deleted', deletedCount, '#c94a4a')}
+            `;
+            document.getElementById('summaryCards').innerHTML = summaryCardsHTML;
+        }
+
+        function createSummaryCard(title, value, color) {
+            return `
+                <div style="background: white; padding: 20px; border-radius: 10px; border-left: 5px solid ${color}; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                    <p style="color: #666; font-size: 0.9em; margin-bottom: 5px;">${title}</p>
+                    <strong style="color: ${color}; font-size: 1.8em;">${value}</strong>
+                </div>
+            `;
+        }
+        
+        // Maintenance Functions
+        function showMaintenance() {
+            renderMaintenanceCalendar();
+            renderMaintenanceList();
+            document.getElementById('maintenanceModal').classList.add('active');
+        }
+        
+        function getDaysInMonth(year, month) {
+            return new Date(year, month + 1, 0).getDate();
+        }
+
+        function renderMaintenanceCalendar() {
+            const calendarEl = document.getElementById('maintenanceCalendar');
+            const year = currentCalendarMonth.getFullYear();
+            const month = currentCalendarMonth.getMonth();
+            const today = new Date();
+            const daysInMonth = getDaysInMonth(year, month);
+            const firstDayIndex = new Date(year, month, 1).getDay(); // 0 (Sun) to 6 (Sat)
+            const monthName = currentCalendarMonth.toLocaleString('default', { month: 'long' });
+            
+            let calendarHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <button class="btn close-btn" onclick="changeCalendarMonth(-1)" style="padding: 5px 10px; font-size: 0.9em;">&lt; Prev</button>
+                    <h4 style="color: #2c4a6e;">${monthName} ${year}</h4>
+                    <button class="btn close-btn" onclick="changeCalendarMonth(1)" style="padding: 5px 10px; font-size: 0.9em;">Next &gt;</button>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-weight: 700; color: #5d7a9e; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">
+                    <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(7, 1fr); text-align: center;">
+            `;
+
+            // Blanks for the start of the month
+            for (let i = 0; i < firstDayIndex; i++) {
+                calendarHTML += `<div></div>`;
+            }
+
+            // Days of the month
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(year, month, day);
+                const isToday = date.toDateString() === today.toDateString();
+                const isSelectedStart = selectedStartDate && date.toDateString() === selectedStartDate.toDateString();
+                const isSelectedEnd = selectedEndDate && date.toDateString() === selectedEndDate.toDateString();
+                const isInRange = selectedStartDate && selectedEndDate && date > selectedStartDate && date < selectedEndDate;
+                
+                const hasMaintenance = maintenanceRecords.some(record => {
+                    const start = new Date(record.startDate);
+                    const end = new Date(record.endDate);
+                    // Normalize dates to midnight for comparison
+                    const d1 = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+                    const d2 = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+                    const d3 = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+                    
+                    return d1 >= d2 && d1 <= d3;
+                });
+                
+                let dayStyle = `padding: 10px 5px; cursor: pointer; border-radius: 5px; margin: 2px; transition: background 0.2s; position: relative;`;
+                let dayClasses = '';
+                
+                if (hasMaintenance) {
+                    dayStyle += `background: #f8e5e5; color: #c94a4a; font-weight: 600; border: 1px solid #c94a4a;`;
+                }
+                
+                if (isToday) {
+                    dayStyle += `border: 2px solid #2c4a6e;`;
+                }
+                if (isSelectedStart || isSelectedEnd) {
+                    dayStyle += `background: #2c4a6e !important; color: white !important; font-weight: 700;`;
+                }
+                if (isInRange) {
+                    dayStyle += `background: #a9c1dd;`;
+                }
+
+                calendarHTML += `
+                    <div style="${dayStyle}" onclick="selectDate(${year}, ${month}, ${day})">
+                        ${day}
+                    </div>
+                `;
+            }
+
+            calendarHTML += `</div>`;
+            calendarEl.innerHTML = calendarHTML;
+            updateDateRangeDisplay();
+        }
+        
+        function changeCalendarMonth(offset) {
+            currentCalendarMonth.setMonth(currentCalendarMonth.getMonth() + offset);
+            renderMaintenanceCalendar();
+        }
+
+        function selectDate(year, month, day) {
+            const selectedDate = new Date(year, month, day);
+            
+            if (!selectedStartDate) {
+                selectedStartDate = selectedDate;
+                selectedEndDate = null;
+            } else if (!selectedEndDate && selectedDate > selectedStartDate) {
+                selectedEndDate = selectedDate;
+            } else {
+                selectedStartDate = selectedDate;
+                selectedEndDate = null;
+            }
+            
+            renderMaintenanceCalendar();
+        }
+        
+        function updateDateRangeDisplay() {
+            const displayEl = document.getElementById('dateRangeDisplay');
+            if (selectedStartDate && selectedEndDate) {
+                const start = selectedStartDate.toLocaleDateString('en-GB');
+                const end = selectedEndDate.toLocaleDateString('en-GB');
+                displayEl.innerHTML = `<strong>Selected Range:</strong> <span style="color: #c94a4a;">${start}</span> to <span style="color: #c94a4a;">${end}</span>`;
+            } else if (selectedStartDate) {
+                const start = selectedStartDate.toLocaleDateString('en-GB');
+                displayEl.innerHTML = `<strong>Start Date:</strong> <span style="color: #c94a4a;">${start}</span>. Select End Date.`;
+            } else {
+                displayEl.textContent = 'Click on calendar to select start date';
+            }
+        }
+        
+        function resetCalendar() {
+            selectedStartDate = null;
+            selectedEndDate = null;
+            renderMaintenanceCalendar();
+            document.getElementById('maintenanceDescription').value = '';
+        }
+
+        function addMaintenance() {
+            const description = document.getElementById('maintenanceDescription').value.trim();
+            if (!selectedStartDate || !selectedEndDate) {
+                alert('Please select a start and end date for the maintenance period.');
+                return;
+            }
+            if (!description) {
+                alert('Please enter a description for the maintenance.');
+                return;
+            }
+            
+            // Ensure start date is before end date
+            const startDate = selectedStartDate.toISOString().split('T')[0];
+            const endDate = selectedEndDate.toISOString().split('T')[0];
+
+            maintenanceRecords.push({
+                startDate: startDate,
+                endDate: endDate,
+                description: description,
+                addedOn: new Date().toLocaleDateString('en-GB')
+            });
+            
+            // Sort by start date
+            maintenanceRecords.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+            
+            // Clear inputs and re-render
+            resetCalendar();
+            renderMaintenanceList();
+            // alert('Maintenance added successfully!');
+        }
+
+        function renderMaintenanceList() {
+            const listEl = document.getElementById('maintenanceList');
+            const now = new Date();
+            
+            if (maintenanceRecords.length === 0) {
+                listEl.innerHTML = '<p style="color: #666; padding: 10px; text-align: center; border: 1px dashed #eee; border-radius: 8px;">No scheduled maintenance records.</p>';
+                return;
+            }
+            
+            listEl.innerHTML = maintenanceRecords.map((record, index) => {
+                const startDate = new Date(record.startDate).toLocaleDateString('en-GB');
+                const endDate = new Date(record.endDate).toLocaleDateString('en-GB');
+                
+                const end = new Date(record.endDate);
+                const endOfDay = new Date(end.getFullYear(), end.getMonth(), end.getDate(), 23, 59, 59);
+                const isPast = endOfDay < now;
+
+                return `
+                    <div style="background: ${isPast ? '#f0f0f0' : '#fff3e0'}; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid ${isPast ? '#999' : '#c94a4a'};">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+                            <div>
+                                <strong style="color: ${isPast ? '#666' : '#c94a4a'};">
+                                    ${startDate} - ${endDate}
+                                </strong>
+                                ${isPast ? '<span style="color: #999; margin-left: 10px; font-size: 0.9em;">(Past)</span>' : ''}
+                            </div>
+                            <button onclick="deleteMaintenance(${index})" style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 0.85em;">Delete</button>
+                        </div>
+                        <div style="color: #555;">${record.description}</div>
+                        <div style="color: #999; font-size: 0.85em; margin-top: 8px;">Added: ${record.addedOn}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function deleteMaintenance(index) {
+            if (confirm('Are you sure you want to delete this maintenance record?')) {
+                maintenanceRecords.splice(index, 1);
+                renderMaintenanceList();
+                renderMaintenanceCalendar(); // Update calendar markers
+            }
+        }
+        
+        // Test Data Generation (for demonstration)
+        function generateTestData() {
+            experimentLogs = [
+                {
+                    type: 'NXCT',
+                    timestamp: new Date().toLocaleString(),
+                    data: {
+                        appNumber: 'NXCT-0001',
+                        dateReceived: '01/03/2024',
+                        fullName: 'Dr. Alice Smith',
+                        organisation: 'Imperial College',
+                        email: 'a.smith@ic.ac.uk',
+                        projectTitle: 'Microstructure of Advanced Composites',
+                        projectDescription: 'High-resolution tomography to quantify fiber-matrix distribution in aerospace materials.',
+                        subjectSector: 'Engineering',
+                        typeOfWork: 'Research',
+                        freeBeamtime: 'Yes',
+                        daysNeeded: '5',
+                        equipment: 'Microscope',
+                        previousExperience: 'Extensive',
+                        numSamples: '10',
+                        sampleComposition: 'Carbon/Epoxy Composite',
+                        sampleDimensions: '10x10x10mm',
+                        hazardous: 'No',
+                        samplesReady: 'Yes',
+                        readyDate: '01/04/2024',
+                        featureSize: '5-50 microns',
+                        scanningArea: 'Region of Interest',
+                        analysisHelp: 'Yes',
+                        analysisDetails: 'Segmentation and volume fraction analysis required.',
+                        additionalNotes: 'Urgent project for industry partner.',
+                        status: 'Samples Received',
+                        completionDate: '20/05/2024',
+                        actualDays: '6',
+                        dataSize: '1200',
+                        analysisTime: '40',
+                        dataDeleted: 'No',
+                        statusLog: [
+                            { status: 'Acknowledged', date: '01/03/2024, 10:00:00' },
+                            { status: 'Samples Received', date: '05/04/2024, 14:30:00' }
+                        ]
+                    }
+                },
+                {
+                    type: 'Internal',
+                    timestamp: new Date().toLocaleString(),
+                    data: {
+                        internalNumber: '0001',
+                        dateReceived: '10/01/2024',
+                        title: 'New Detector Calibration',
+                        lead: 'Prof. John Doe',
+                        organisation: 'University College London',
+                        email: 'j.doe@ucl.ac.uk',
+                        system: 'Large Field of View',
+                        expectedDays: '2',
+                        beamtime: 'Free',
+                        notes: 'Routine calibration check after software upgrade.',
+                        status: 'Scan Complete',
+                        completionDate: '12/01/2024',
+                        actualDays: '1.5',
+                        dataSize: '50',
+                        analysisTime: '2',
+                        dataDeleted: 'Yes',
+                        statusLog: [
+                            { status: 'Acknowledged', date: '10/01/2024, 09:00:00' },
+                            { status: 'Scanning', date: '11/01/2024, 11:00:00' },
+                            { status: 'Scan Complete', date: '12/01/2024, 17:00:00' }
+                        ]
+                    }
+                },
+                {
+                    type: 'NXCT',
+                    timestamp: new Date().toLocaleString(),
+                    data: {
+                        appNumber: 'NXCT-0002',
+                        dateReceived: '15/05/2024',
+                        fullName: 'Ms. Clara Jones',
+                        organisation: 'SME Innovate Ltd',
+                        email: 'c.jones@innovate.com',
+                        projectTitle: 'Porosity Analysis of 3D-Printed Medical Implants',
+                        projectDescription: 'Assessment of internal pore structure for quality control of titanium implants.',
+                        subjectSector: 'Medical',
+                        typeOfWork: 'Commercial',
+                        freeBeamtime: 'No',
+                        daysNeeded: '3',
+                        equipment: 'Medium Field of View',
+                        previousExperience: 'Limited',
+                        numSamples: '5',
+                        sampleComposition: 'Titanium Alloy',
+                        sampleDimensions: 'Rings, 5cm diameter',
+                        hazardous: 'No',
+                        samplesReady: 'No',
+                        readyDate: '01/07/2024',
+                        featureSize: '100-500 microns',
+                        scanningArea: 'Whole Sample',
+                        analysisHelp: 'Not sure',
+                        analysisDetails: 'Need guidance on using Avizo for porosity quantification.',
+                        additionalNotes: '',
+                        status: 'Acknowledged',
+                        completionDate: '',
+                        actualDays: '',
+                        dataSize: '',
+                        analysisTime: '',
+                        dataDeleted: 'No',
+                        statusLog: [
+                            { status: 'Acknowledged', date: '15/05/2024, 11:00:00' }
+                        ]
+                    }
+                },
+                {
+                    type: 'Internal',
+                    timestamp: new Date().toLocaleString(),
+                    data: {
+                        internalNumber: '0002',
+                        dateReceived: '01/06/2024',
+                        title: 'PhD Student Initial Scans (Water Transport)',
+                        lead: 'Anya Sharma (PhD)',
+                        organisation: 'University College London',
+                        email: 'a.sharma@ucl.ac.uk',
+                        system: 'Microscope',
+                        expectedDays: '5',
+                        beamtime: 'Free',
+                        notes: 'First set of scans for water transport in rock samples. Requires high contrast.',
+                        status: 'Data Transferred',
+                        completionDate: '07/06/2024',
+                        actualDays: '5',
+                        dataSize: '950',
+                        analysisTime: '10',
+                        dataDeleted: 'No',
+                        statusLog: [
+                            { status: 'Acknowledged', date: '01/06/2024, 12:00:00' },
+                            { status: 'Samples Received', date: '03/06/2024, 10:00:00' },
+                            { status: 'Scanning', date: '03/06/2024, 14:00:00' },
+                            { status: 'Scan Complete', date: '06/06/2024, 18:00:00' },
+                            { status: 'Data Transferred', date: '07/06/2024, 09:00:00' }
+                        ]
+                    }
+                }
+            ];
+            
+            maintenanceRecords = [
+                { startDate: '2025-10-01', endDate: '2025-10-02', description: 'Annual system software update and patch installation.', addedOn: '01/09/2025' },
+                { startDate: '2024-01-20', endDate: '2024-01-25', description: 'Major system upgrade and tube replacement (past event).', addedOn: '01/12/2023' }
+            ];
+
+            initializeInternalCounter();
+            renderLogs();
+            // alert('Test data generated successfully!');
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', () => {
+            renderLogs();
+            document.getElementById('viewToggle').classList.add('active');
+            initializeInternalCounter();
+        });
+        
     </script>
 </body>
 </html>
